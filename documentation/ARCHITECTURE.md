@@ -1,3 +1,89 @@
+# 🏗️ System Architecture
+
+## Overview
+
+The ITC Invoice Downloader uses a **class-based inheritance pattern** to share common automation logic between vendors while allowing vendor-specific customization.
+
+**Core Principle:** White the automation workflow once (login -> navigate -> download), let each vendor implement their specific details
+
+---
+
+## Architecture Diagram
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Orchestrator (CLI)                      │
+│                  Handles user input & routing                │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+                            ▼
+        ┌───────────────────────────────────────────┐
+        │     VendorDownloader (Base Class)         │
+        │  - Common workflow (run method)           │
+        │  - Shared utilities (logging, screenshots)│
+        │  - Abstract methods (login, navigate, etc)│
+        └───────────────────┬───────────────────────┘
+                            │
+        ┌───────────────────┼───────────────────┐
+        ▼                   ▼                   ▼
+┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+│   Rogers     │    │     Bell     │    │    Telus     │
+│ Downloader   │    │  Downloader  │    │  Downloader  │
+│              │    │              │    │              │
+│ Implements:  │    │ Implements:  │    │ Implements:  │
+│ - login()    │    │ - login()    │    │ - login()    │
+│ - navigate() │    │ - navigate() │    │ - navigate() │
+│ - download() │    │ - download() │    │ - download() │
+└──────────────┘    └──────────────┘    └──────────────┘
+```
+
+---
+
+## Component Hierarchy
+
+### 1. Orchestrator (`orchestrator.py`)
+
+**Responsibility:** CLI entry point and vendor routing
+
+**What it does:**
+- Parse command-line arguments (`vendor`, `account_index`)
+- Validates input (vendor exists, account in range)
+- Instantiates the correct vendor downloader
+- Calls the downloader's `run()` method
+- Reports success/failure to user
+
+**Key code:**
+```python
+VENDORS = {
+    'rogers': RogersDownloader(),
+    # Future vendors added here
+}
+
+downloader = VENDORS[vendor_name]
+success = downloader.run(account_index, DOWNLOAD_PATH, headless=False)
+```
+
+### 2. Base Downloader (`ITC/downloaders/base.py`)
+
+**Responsibility:** Shared automation logic and workflow orchestration
+
+**Abstract Base Class Pattern:**
+The base class defines the **workflow** but not the **implementation**. Each vendor must implement specific methods.
+
+#### Common Workflow (Same for All Vendors)
+```python
+def run(self, account_index, download_path, headless=False):
+    """Standard workflow - same for every vendor"""
+    setup_download_directory()
+    launch_browser()
+    
+    # These three methods are vendor-specific
+    self.login(account_index)              # ← Vendor implements
+    self.navigate_to_invoices(account_index)  # ← Vendor implements
+    self.download_invoice(account_index)   # ← Vendor implements
+    
+    cleanup()
+    return success
+```
 #### Shared Utilities (Available to All Vendors)
 
 | Utility | Purpose |
