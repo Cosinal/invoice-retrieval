@@ -16,6 +16,13 @@ from .base import VendorDownloader
 class RogersDownloader(VendorDownloader):
     """ Rogers-specific invoice downloader"""
 
+    # Account metadata for filename generation
+    ACCOUNT_METADATA = {
+        0: {'vendor_number': 'ROGE04', 'account_number': '3509', 'gl_account': '68050-YYT-11-410'},
+        1: {'vendor_number': 'ROGE04', 'account_number': '7803', 'gl_account': '68050-YYT-16-412'},
+        2: {'vendor_number': 'ROGE04', 'account_number': '8401', 'gl_account': '68050-YYT-10-410'}
+    }
+
     def __init__(self):
         super().__init__(vendor_name='rogers', max_accounts=3) # Could pass a variable above class to easily change max_accounts or 'vendor_name'
 
@@ -30,6 +37,7 @@ class RogersDownloader(VendorDownloader):
         # Validate 
         if not all ([self.login_url, self.username, self.password]):
             raise ValueError("ROGERS_LOGIN_URL, ROGERS_USERNAME, and ROGERS_PASSWORD must be set in the .env")
+        
         
     def login(self, account_index):
         """
@@ -49,10 +57,11 @@ class RogersDownloader(VendorDownloader):
             self.page.wait_for_selector('#ds-form-input-id-0', timeout=10000) # Until either selector loads or 10s passes
             self.page.fill('#ds-form-input-id-0', self.username)
             self.logger.debug("Username entered")
+            self.page.wait_for_timeout(1000)
 
             # Click continue
             self.page.click('body > app-root > div > div > div > div > div > div > div > div > ng-component > form > div.text-center.signInButton > button')
-            self.page.wait_for_timeout(2000)
+            self.page.wait_for_timeout(500)
 
             # Fill password
             self.page.wait_for_selector('#input_password', timeout=10000) # Until either selector loads or 10s passes
@@ -144,12 +153,12 @@ class RogersDownloader(VendorDownloader):
                 self.page.click(download_selector)
                 self.logger.info("Clicked 'Download bills'")
 
-            # Save file
+            # Save the downloaded file with proper naming
             download = download_info.value
-            original_filename = download.suggested_filename
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"rogers_account_{account_index + 1}_{timestamp}_{original_filename}"
-
+            
+            # Generate filename using ITC naming convention (with current date)
+            filename = self.generate_file_name(account_index)
+            
             save_path = self.download_dir / filename
             download.save_as(save_path)
 

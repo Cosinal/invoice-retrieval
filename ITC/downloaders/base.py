@@ -4,6 +4,7 @@ All vendor-specif downloaders inherit from this
 """
 
 import logging
+import platform
 
 from pathlib import Path
 from datetime import datetime
@@ -21,6 +22,7 @@ class VendorDownloader(ABC):
     - login()
     - navigate_to_invoices()
     - download_invoice()
+    - ACCOUNT_METADATA (class variable)
     """
 
     def __init__(self, vendor_name, max_accounts=3):
@@ -76,6 +78,41 @@ class VendorDownloader(ABC):
         filename = f'{name}_{timestamp}.png'
         self.page.screenshot(path=log_dir / filename)
         self.logger.debug(f"Screenshot saved: {filename}")
+
+    def generate_file_name(self, account_index, invoice_date=None):
+        """
+        Generate filename following ITC naming convention
+        Format: {vendor_name}_{account_number}_{date}_{gl_account}.pdf
+        
+        Args:
+            account_index: Which account (0, 1, 2)
+            invoice_date: Date from invoice (datetime object or None)
+            
+        Returns:
+            str: Formatted filename
+        """
+
+        # Get metadata for this account
+        if not hasattr(self, 'ACCOUNT_METADATA'):
+            raise NotImplementedError("Vendor must define ACCOUNT_METADATA class variable")
+        
+        metadata = self.ACCOUNT_METADATA[account_index]
+
+        # Format date
+        if invoice_date:
+            date_obj = invoice_date
+        else:
+            date_obj = datetime.now()
+
+        if platform.system() == 'Windows':
+            date_str = date_obj.strftime("%#d-%b-%Y")
+        else:
+            date_str = date_obj.strftime("%-d-%b-%Y")
+
+        # Construct filename: vendor_number_account_number_date_gl_account.pdf
+        filename = f"{metadata['vendor_number']}_{metadata['account_number']}_{date_str}_{metadata['gl_account']}.pdf"
+
+        return filename
 
 
     # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
