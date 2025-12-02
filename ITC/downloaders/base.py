@@ -3,8 +3,10 @@ Base Downloader Class
 All vendor-specif downloaders inherit from this
 """
 
+import re
 import logging
 import platform
+import pdfplumber
 
 from pathlib import Path
 from datetime import datetime
@@ -78,6 +80,50 @@ class VendorDownloader(ABC):
         filename = f'{name}_{timestamp}.png'
         self.page.screenshot(path=log_dir / filename)
         self.logger.debug(f"Screenshot saved: {filename}")
+
+    def extract_date_from_pdf(self, pdf_path, bbox_coords, date_format="%b %d, %Y"):
+        """
+        Extract date from PDF at specific coordinates
+
+        ARGS:
+            pdf_path: Path to PDF file
+            bbox_coords: Tuple of (x0, y0, x1, y1) coordinates
+            date_format: Expected date format (default: "Nov 12, 2025)
+
+        Returns:
+            datetime object or None if extraction failed
+        """
+        
+        try:
+            with pdfplumber.open(pdf_path) as pdf:
+                first_page = pdf.pages[0]
+
+                # Extract text from bounding box
+                cropped = first_page.within_bbox(bbox_coords)
+                text = cropped.extract_text()
+
+                if not text:
+                    self.logger.warning("No text found in bounding box")
+                    return None
+                
+                # Clean up the text (remove extra whitespace, newlines)
+                text = text.strip()
+                self.logger.debug(f"Extracted text from bbox: '{text}'")
+
+                # Parse the date using the provided format
+                try:
+                    parsed_date = datetime.strptime(text, date_format)
+                    self.logger.info(f"Successfully parsed invoice date: {parsed_date.strftime('%Y-%m-%d')}")
+                    return parsed_date
+                except ValueError as e:
+                    self.logger.error(f"Failed to parse '{text}' with format '{date_format}': {e}")
+                    return None
+            
+        except Exception as e:
+            self.logger.error(f"Failed to extract date from PDF: {e}", exc_info=True)
+            return None
+                
+
 
     def generate_file_name(self, account_index, invoice_date=None):
         """

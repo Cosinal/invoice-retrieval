@@ -23,6 +23,12 @@ class RogersDownloader(VendorDownloader):
         2: {'vendor_number': 'ROGE04', 'account_number': '8401', 'gl_account': '68050-YYT-10-410'}
     }
 
+    # Vendor metadata for pdfparsing
+    VENDOR_METADATA = {
+        'date_bbox': (118.0, 44.0, 168.0, 54.0),
+        'date_format': '%b %d, %Y'
+    }
+
     def __init__(self):
         super().__init__(vendor_name='rogers', max_accounts=3) # Could pass a variable above class to easily change max_accounts or 'vendor_name'
 
@@ -153,26 +159,43 @@ class RogersDownloader(VendorDownloader):
                 self.page.click(download_selector)
                 self.logger.info("Clicked 'Download bills'")
 
-            # Save the downloaded file with proper naming
+            # Save file temporarily
             download = download_info.value
-            
-            # Generate filename using ITC naming convention (with current date)
-            filename = self.generate_file_name(account_index)
-            
-            save_path = self.download_dir / filename
-            download.save_as(save_path)
+            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+            temp_filename = f"temp_rogers_{account_index}_{timestamp}.pdf"
+            temp_path = self.download_dir / temp_filename
+            download.save_as(temp_path)
 
-            # Return the filepath
-            self.logger.info(f"Successfully downloaded: {filename}")
-            self.logger.info(f"Saved to: {save_path.absolute()}")
-            return str(save_path)
+            self.logger.info(f"Downloaded to temporary file: {temp_filename}")
 
-        except Exception as e:
-            self.logger.error(f"Download failed: {e}", exc_info=True)
-            self.take_screenshot(f'error_download_{account_index + 1}')
-            return None
+            # Extract invoice date from PDF using vendor-level metadata
+            invoice_date = self.extract_date_from_pdf(
+                pdf_path=temp_path,
+                bbox_coords=self.VENDOR_METADATA['date_bbox'],
+                date_format=self.VENDOR_METADATA['date_format']
+            )
+
+            if invoice_date:
+                self.logger.info(f"Extracted invoice date: {invoice_date.strftime('%Y-%m-%d')}")
+            else:
+                self.logger.warning("Could not extract invoice date from PDF, using current date")
+            
+            # Generate proper filename 
+            filename = self.generate_file_name(account_index, invoice_date)
+
+            # Rename temp file to final filename
+            final_path = self.download_dir / filename
+            temp_path.rename(final_path)
+
+            self.logger.info(f"Successfully renamed to: {filename}")
+            self.logger.info(f"Saved to: {final_path.absolute()}")
+            
+            return str(final_path)
         
-
+        except Exception as e:
+            self.logger.error(f"Failed to process account #{account_index + 1}: {e}")
+            self.take_screenshot(f'error_account_{account_index + 1}')
+            return None
 
 
        
