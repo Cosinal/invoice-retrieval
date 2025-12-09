@@ -83,14 +83,32 @@ class RogersDownloader(VendorDownloader):
                 self.page.type(username_selector, self.username, delay=100)
 
             self.logger.debug("Username entered successfully")
-            self.page.wait_for_timeout(1000)
+            self.page.wait_for_timeout(random.randint(1500,3500)) # Human-like wait before continuing
 
-            # Click continue
+
+
+
+            # Move mouse to continue button and click
             continue_button = 'body > app-root > div > div > div > div > div > div > div > div > ng-component > form > div.text-center.signInButton > button'
-
             self.page.wait_for_selector(continue_button, state='visible', timeout=10000)
+
+            # Get button position and move mouse there
+            box = self.page.locator(continue_button).bounding_box()
+            if box:
+                # Move mouse to button
+                self.page.mouse.move(
+                    box['x'] + box['width']/2 + random.randint(-5,5),
+                    box['y'] + box['height']/2 + random.randint(-5,5)
+                )
+                self.page.wait_for_timeout(random.randint(300,700))
+
+            # Click
             self.page.click(continue_button)
-            self.page.wait_for_timeout(500)
+            self.logger.debug("Clicked 'Continue' button")
+
+            # Wait for longer after clicking (server processing time)
+            self.page.wait_for_timeout(random.randint(2000,4000))
+
 
             # Wait for password field to be VISIBLE and READY
             password_selector = '#input_password'
