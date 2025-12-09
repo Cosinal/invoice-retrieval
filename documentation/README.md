@@ -69,6 +69,6 @@ invoices-denise/
 
 | Document | When to Read |
 |----------|--------------|
-| [🏗️ ARCHITECTURE.md](documents/ARCHITECTURE.md) | Understanding how the system works |
-| [➕ ADDING_VENDORS.md](documents/ADDING_VENDORS.md) | Adding Bell, Telus, or new accounts |
-| [🐛 TROUBLESHOOTING.md](documents/TROUBLESHOOTING.md) | When something breaks |
+| [🏗️ ARCHITECTURE.md](documentation/ARCHITECTURE.md) | Understanding how the system works |
+| [➕ ADDING_VENDORS.md](documentation/ADDING_VENDORS.md) | Adding Bell, Telus, or new accounts |
+| [🐛 TROUBLESHOOTING.md](documentation/TROUBLESHOOTING.md) | When something breaks |
