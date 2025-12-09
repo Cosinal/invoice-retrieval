@@ -59,27 +59,67 @@ class RogersDownloader(VendorDownloader):
         self.take_screenshot('01_login_page')
 
         try:
-            # Fill username
-            self.page.wait_for_selector('#ds-form-input-id-0', timeout=10000) # Until either selector loads or 10s passes
-            self.page.fill('#ds-form-input-id-0', self.username)
-            self.logger.debug("Username entered")
+            # Wait for username field to be VISIBLE and READY
+            username_selector = '#ds-form-input-id-0'
+            self.page.wait_for_selector(username_selector, state='visible', timeout=15000)
+
+            self.page.wait_for_timeout(500) # Extra wait to ensure page is stable (0.5s)
+
+            # Clear any existing text and fill
+            self.page.fill(username_selector, '')
+            self.page.type(username_selector, self.username, delay=100) # Types the username with a delay between keystrokes
+
+            # Verify the text was actually entered
+            entered_value = self.page.input_value(username_selector)
+            if entered_value != self.username:
+                self.logger.warning("Username not entered correctly. Expected {self.username}, got {entered_value}")
+
+                # Retry once
+                self.page.wait_for_timeout(1000)
+                self.page.type(username_selector, self.username, delay=100)
+
+            self.logger.debug("Username entered successfully")
             self.page.wait_for_timeout(1000)
 
             # Click continue
-            self.page.click('body > app-root > div > div > div > div > div > div > div > div > ng-component > form > div.text-center.signInButton > button')
+            continue_button = 'body > app-root > div > div > div > div > div > div > div > div > ng-component > form > div.text-center.signInButton > button'
+
+            self.page.wait_for_selector(continue_button, state='visible', timeout=10000)
+            self.page.click(continue_button)
             self.page.wait_for_timeout(500)
 
-            # Fill password
-            self.page.wait_for_selector('#input_password', timeout=10000) # Until either selector loads or 10s passes
-            self.page.fill('#input_password', self.password)
-            self.logger.debug("Password entered")
+            # Wait for password field to be VISIBLE and READY
+            password_selector = '#input_password'
+            self.page.wait_for_selector(password_selector, state='visible', timeout=15000)
+
+            # Extra wait to ensure page is stable
+            self.page.wait_for_timeout(500)
+
+            # Clear and fill password
+            self.page.fill(password_selector, '')
+            self.page.type(password_selector, self.password, delay=80) #  Types the password with a delay between keystrokes
+            self.page.wait_for_timeout(1000)
+
+            # Verify password was entered (just check it's non-empty)
+            entered_password = self.page.input_value(password_selector)
+            if not entered_password:
+                self.logger.warning("Password not entered correctly, retrying")
+
+                # Retry once
+                self.page.wait_for_timeout(1000)
+                self.page.fill(password_selector, self.password)
+
+            self.logger.debug("Password entered successfully")
 
             # Click login
-            self.page.click('#LoginForm > div.text-center.signInButton > button > span')
+            login_button = '#LoginForm > div.text-center.signInButton > button > span'
+
+            self.page.wait_for_selector(login_button, state='visible', timeout=10000)
+            self.page.click(login_button)
             self.logger.info("Login button clicked")
 
             # Wait for post-login
-            self.wait_for_page_load(timeout=30000) # 30s
+            self.page.wait_for_selector('#ds-modal-container-0 > rss-account-selector', state='visible', timeout=30000) # 30s
             self.take_screenshot('02_after_login')
             self.logger.info("Login successful!")
         
