@@ -1,7 +1,7 @@
 # Python dependencies
 # Install with: pip install -r requirements.txt
 
-playwright==1.48.0
-python-dotenv==1.0.1
-pdfplumber==0.11.4
-Office365-REST-Python-Client==2.5.3
+playwright>=1.48.0
+python-dotenv>=1.0.0
+pdfplumber>=0.11.0
+Office365-REST-Python-Client>=2.5.3

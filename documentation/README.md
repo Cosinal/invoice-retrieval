@@ -23,7 +23,7 @@ Saves **2+ hours monthly** vs manual downloads.
 ### 1. Install Dependencies
 ```bash
 pip install -r requirements.txt
-playwright install chromium
+playwright -m install chromium
 ```
 
 ### 2. Configure Credentials
