@@ -2,7 +2,6 @@
 # Install with: pip install -r requirements.txt
 
 playwright>=1.48.0
-playwright-stealth>1.0.8
 python-dotenv>=1.0.0
 pdfplumber>=0.11.0
 Office365-REST-Python-Client>=2.5.3

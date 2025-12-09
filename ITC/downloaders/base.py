@@ -15,7 +15,6 @@ from abc import ABC, abstractmethod
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
 
 
-
 class VendorDownloader(ABC):
     """
     Base class for all vendor invoice downloaders
@@ -221,10 +220,11 @@ class VendorDownloader(ABC):
         with sync_playwright() as playwright:
             try:
                 
-                # Launch browser
+                # Launch browser with anti-detection
                 self.browser = playwright.chromium.launch(
                     headless=headless,
-                    slow_mo=500
+                    slow_mo=500,
+                    args=['--disable-blink-features=AutomationControlled']
                 )
                 self.logger.info("Browser launched")
 
@@ -233,7 +233,8 @@ class VendorDownloader(ABC):
                     viewport={
                         'width': 1920,
                         'height': 1080
-                    }
+                    },
+                    user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
                 )
 
                 self.page = self.context.new_page()

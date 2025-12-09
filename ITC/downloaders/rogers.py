@@ -6,6 +6,7 @@ Last Modified: 12/2/2025
 """
 
 import os
+import random
 from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
@@ -56,6 +57,9 @@ class RogersDownloader(VendorDownloader):
         self.logger.info(f"Navigating to: {self.login_url}")
 
         self.page.goto(self.login_url, wait_until="domcontentloaded", timeout=60000)
+        
+        # Random human-like wait delay after page load
+        self.page.wait_for_timeout(random.randint(1000, 3000))
         self.take_screenshot('01_login_page')
 
         try:
