@@ -217,6 +217,11 @@ class VendorDownloader(ABC):
         self.logger.info(f"Target Account: #{account_index + 1}")
         self.logger.info("="*70)
 
+        # Create directory for browser data
+        browser_data_dir = Path('ITC/browser-data')
+        browser_data_dir.mkdir(exist_ok=True)
+        auth_file = browser_data_dir / f'{self.vendor_name}_session.json'
+
         with sync_playwright() as playwright:
             try:
                 
@@ -228,21 +233,30 @@ class VendorDownloader(ABC):
                 )
                 self.logger.info("Browser launched")
 
-                self.context = self.browser.new_context(
-                    accept_downloads=True,
-                    viewport={
-                        'width': 1920,
-                        'height': 1080
-                    },
-                    user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                )
+                context_options = {
+                    'accept_downloads': True,
+                    'viewport': {'width': 1920, 'height': 1080},
+                    'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                    'locale': 'en-CA'
+                }
 
+                if auth_file.exists():
+                    self.logger.info(f'Loading saved session from {auth_file.name}')
+                    context_options['storage_state'] = str(auth_file)
+                else:
+                    self.logger.info("No saved session found, creating new session")
+
+                self.context = self.browser.new_context(**context_options)
                 self.page = self.context.new_page()
 
                 # Execute vendor-specific methods
                 self.login(account_index)
                 self.navigate_to_invoices(account_index)
                 downloaded_file = self.download_invoice(account_index)
+
+                # Save cookies for future sessions
+                self.context.storage_state(path=str(auth_file))
+                self.logger.info(f"Session saved to {auth_file.name}")
 
                 # Cleanup
                 self.logger.info("Closing browser...")
