@@ -207,7 +207,7 @@ class VendorDownloader(ABC):
             headless: Whether to run browser in headless mode
             
         Returns:
-            bool: True if successful, False otherwise
+            str: Path to downloaded file, or None if failed
         """
 
         self.setup_download_directory(download_path)
@@ -250,13 +250,13 @@ class VendorDownloader(ABC):
 
                 if downloaded_file:
                     self.logger.info(f"SUCCESS: {downloaded_file}")
-                    return True
+                    return downloaded_file # Return path to downloaded file
                 else:
                     self.logger.error("FAILED: No file downloaded")
-                    return False
+                    return None # Return None on failure
             
             except Exception as e:
                 self.logger.error(f"Critical Error: {e}", exc_info=True)
                 if self.browser:
                     self.browser.close()
-                return False
+                return None # Return None on failure

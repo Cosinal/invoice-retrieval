@@ -16,9 +16,12 @@ from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
 
+# Load Integrations
+from ITC.integrations.email_notifier import send_invoice_email
+
+# Load Vendor Downloaders
 from ITC.downloaders.rogers import RogersDownloader
 # Future vendors:
-# from ITC.downloaders.bell import BellDownloader
 
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 # CONFIGURATION
@@ -117,7 +120,7 @@ def main():
 
     # Run the download
     try:
-        success = downloader.run(
+        download_file_path = downloader.run(
             account_index=account_index,
             download_path=DOWNLOAD_PATH,
             headless=False # Set to True for production/background runs
@@ -126,21 +129,43 @@ def main():
         print()
         print("="*70)
 
-        if success:
-            print("Success!")
+        if download_file_path: # Checks if we got a valid path back
+            print(f" SUCCESS: Downloaded invoice for {vendor_name.upper()} account #{account_index + 1}")
+
+            # Convert to path object
+            latest_file = Path(download_file_path)
+
+            print(f"DEBUG: File to email: {latest_file}")
+
+            # Send email (ONLY if download was successful)
+            print()
+            print("Sending email...")
+            email_sent = send_invoice_email(latest_file)
+
+            if email_sent:
+                print("✅ Email sent successfully!")
+            else:
+                print("❌ Email failed to send.")
+
         else:
-            print("Failed :(")
+            # Download failed - NO EMAIL SENT
+            print(f" ERROR: Download failed for {vendor_name.upper()} account #{account_index + 1}")
+            print(" No email sent (download unsuccessful)")
 
-        sys.exit(0 if success else 1)
+        print()
+        print(f"Completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print("="*70)
 
+        sys.exit(0 if download_file_path else 1)
+    
     except Exception as e:
         print()
         print("="*70)
         print(f"CRITICAL ERROR: {e}")
         print("="*70)
+        print(" No email sent (error occurred)")
         sys.exit(1)
 
+
 if __name__ == "__main__":
-    main()
-
-
+     main()
