@@ -6,6 +6,7 @@ Last Modified: 12/2/2025
 """
 
 import os
+import random
 from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
@@ -56,12 +57,15 @@ class RogersDownloader(VendorDownloader):
         self.logger.info(f"Navigating to: {self.login_url}")
 
         self.page.goto(self.login_url, wait_until="domcontentloaded", timeout=60000)
+
+        # Random human-like delay
+        self.page.wait_for_timeout(random.randint(1000, 3000))
         self.take_screenshot('01_login_page')
 
-        try:
+        try:    
             # Fill username
-            self.page.wait_for_selector('#ds-form-input-id-0', timeout=10000) # Until either selector loads or 10s passes
-            self.page.fill('#ds-form-input-id-0', self.username)
+            self.page.wait_for_selector('#ds-form-input-id-0', state ='visible', timeout=10000) # Until either selector loads or 10s passes
+            self.page.type('#ds-form-input-id-0', self.username, delay=100) # Human-like typing
             self.logger.debug("Username entered")
             self.page.wait_for_timeout(1000)
 
@@ -71,7 +75,7 @@ class RogersDownloader(VendorDownloader):
 
             # Fill password
             self.page.wait_for_selector('#input_password', timeout=10000) # Until either selector loads or 10s passes
-            self.page.fill('#input_password', self.password)
+            self.page.type('#input_password', self.password, delay=100) # Human-like typing
             self.logger.debug("Password entered")
 
             # Click login
