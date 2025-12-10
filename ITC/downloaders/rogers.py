@@ -82,8 +82,13 @@ class RogersDownloader(VendorDownloader):
             self.page.click('#LoginForm > div.text-center.signInButton > button > span')
             self.logger.info("Login button clicked")
 
-            # Wait for post-login
-            self.wait_for_page_load(timeout=30000) # 30s
+            # Wait for account selector modal (specific element on post-login page)
+            self.page.wait_for_selector(
+                '#ds-modal-container-0 > rss-account-selector',
+                state='visible',
+                timeout=20000
+            )
+            
             self.take_screenshot('02_after_login')
             self.logger.info("Login successful!")
         
