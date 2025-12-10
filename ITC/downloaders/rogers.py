@@ -136,8 +136,8 @@ class RogersDownloader(VendorDownloader):
             current_x = random.randint(200, 400)
             current_y = random.randint(200, 400)
 
-            target_x = box['x'] + box['width'] / 2
-            target_y = box['y'] + box['height'] / 2
+            target_x = box['x'] + box['width'] / 2 + random.randint(-5, 5)
+            target_y = box['y'] + box['height'] / 2 + random.randint(-5, 5)
 
             # Move in 3-5 steps toward button
             steps = random.randint(3, 5)
@@ -159,7 +159,7 @@ class RogersDownloader(VendorDownloader):
 
             # Click Try Again
             self.logger.info("Clicking 'Try Again' button...")
-            try_again_button.click()
+            self.page.mouse.click(target_x, target_y)
             self.page.wait_for_timeout(random.randint(2000, 3500))
 
             self.take_screenshot('recovery_clicked_try_again')
@@ -217,7 +217,7 @@ class RogersDownloader(VendorDownloader):
                             # Recovery successful - "Try Again" button navigates back to login page
                             # Just continue to next attempt
                             self.logger.info("Recovered from rc01, waiting before retry login...")
-                            self.page.wait_for_timeout(random.randint(25000, 50000)) # Wait 10-45s before retrying
+                            self.page.wait_for_timeout(random.randint(30000, 50000)) # Wait 10-45s before retrying
                             continue
                         else:
                             # Recovery failed
