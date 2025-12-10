@@ -81,7 +81,7 @@ class EnmaxDownloader(VendorDownloader):
             self.page.wait_for_timeout(1000)
 
             # Click Sign-In button
-            sign_in_button = 'js-subscription-form > div > button'
+            sign_in_button = '#js-subscription-form > div > button'
             self.page.click(sign_in_button, force=True)
             self.logger.debug("Clicked Sign-In button")
 
