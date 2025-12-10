@@ -1,0 +1,207 @@
+
+{# VS Code: This is a Jinja2 template, not pure HTML #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITC Invoice Downloader</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📄 ITC Invoice Downloader</h1>
+        </header>
+        
+        <main>
+            {% for vendor_key, vendor in vendors.items() %}
+            <div class="vendor-card">
+                <div class="vendor-header">
+                    <h2>{{ vendor.name }}</h2>
+                    <button 
+                        class="btn btn-primary download-all-btn" 
+                        onclick="downloadAll('{{ vendor_key }}', {{ vendor.total_accounts }})"
+                        id="download-all-{{ vendor_key }}">
+                        Download All ({{ vendor.total_accounts }})
+                    </button>
+                </div>
+                
+                {% for account in vendor.accounts %}
+                <div class="account-row">
+                    <div class="account-info">
+                        <div class="account-title">
+                            <span class="account-icon">📄</span>
+                            <strong>Account #{{ account.index + 1 }}</strong>
+                            <span class="account-number">({{ account.number }})</span>
+                        </div>
+                        <div class="account-meta">
+                            Last downloaded: <span class="last-download">{{ account.last_download }}</span>
+                        </div>
+                        <div class="account-status" id="status-{{ vendor_key }}-{{ account.index }}">
+                            Status: <span class="status-text">Ready</span>
+                        </div>
+                    </div>
+                    
+                    <div class="account-actions">
+                        <button 
+                            class="btn btn-secondary" 
+                            onclick="downloadInvoice('{{ vendor_key }}', {{ account.index }})"
+                            id="btn-{{ vendor_key }}-{{ account.index }}">
+                            Download Invoice
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </main>
+    </div>
+    
+    <script>
+        // Track polling intervals
+        const pollingIntervals = {};
+        
+        function downloadInvoice(vendor, accountIndex) {
+            const btnId = `btn-${vendor}-${accountIndex}`;
+            const statusId = `status-${vendor}-${accountIndex}`;
+            const btn = document.getElementById(btnId);
+            const statusDiv = document.getElementById(statusId);
+            
+            // Disable button
+            btn.disabled = true;
+            btn.textContent = 'Downloading...';
+            btn.classList.add('btn-loading');
+            
+            // Update status
+            statusDiv.innerHTML = 'Status: <span class="status-text status-downloading">Starting...</span>';
+            
+            // Start download
+            fetch('/download', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({vendor: vendor, account_index: accountIndex})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    resetButton(vendor, accountIndex);
+                } else {
+                    // Start polling for status
+                    startPolling(vendor, accountIndex);
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error);
+                resetButton(vendor, accountIndex);
+            });
+        }
+        
+        function downloadAll(vendor, count) {
+            const btn = document.getElementById(`download-all-${vendor}`);
+            btn.disabled = true;
+            btn.textContent = `Downloading ${count} accounts...`;
+            
+            fetch('/download-all', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({vendor: vendor})
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Start polling all accounts
+                for (let i = 0; i < count; i++) {
+                    startPolling(vendor, i);
+                }
+            });
+        }
+        
+        function startPolling(vendor, accountIndex) {
+            const key = `${vendor}_${accountIndex}`;
+            
+            // Clear existing interval if any
+            if (pollingIntervals[key]) {
+                clearInterval(pollingIntervals[key]);
+            }
+            
+            // Poll every 2 seconds
+            pollingIntervals[key] = setInterval(() => {
+                checkStatus(vendor, accountIndex);
+            }, 2000);
+            
+            // Check immediately
+            checkStatus(vendor, accountIndex);
+        }
+        
+        function checkStatus(vendor, accountIndex) {
+            const btnId = `btn-${vendor}-${accountIndex}`;
+            const statusId = `status-${vendor}-${accountIndex}`;
+            const btn = document.getElementById(btnId);
+            const statusDiv = document.getElementById(statusId);
+            const key = `${vendor}_${accountIndex}`;
+            
+            fetch(`/status/${vendor}/${accountIndex}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'downloading' || data.status === 'emailing') {
+                    // Still in progress
+                    statusDiv.innerHTML = `Status: <span class="status-text status-downloading">${data.message}</span>`;
+                    
+                } else if (data.status === 'done') {
+                    // Success!
+                    btn.textContent = 'Done!';
+                    btn.classList.remove('btn-loading');
+                    btn.classList.add('btn-success');
+                    statusDiv.innerHTML = `Status: <span class="status-text status-done">${data.message}</span>`;
+                    
+                    // Stop polling
+                    if (pollingIntervals[key]) {
+                        clearInterval(pollingIntervals[key]);
+                        delete pollingIntervals[key];
+                    }
+                    
+                    // Reset button after 3 seconds
+                    setTimeout(() => {
+                        resetButton(vendor, accountIndex);
+                        location.reload(); // Refresh to update "last downloaded" time
+                    }, 3000);
+                    
+                } else if (data.status === 'error') {
+                    // Error
+                    btn.textContent = 'Error';
+                    btn.classList.remove('btn-loading');
+                    btn.classList.add('btn-error');
+                    statusDiv.innerHTML = `Status: <span class="status-text status-error">${data.message}</span>`;
+                    
+                    // Stop polling
+                    if (pollingIntervals[key]) {
+                        clearInterval(pollingIntervals[key]);
+                        delete pollingIntervals[key];
+                    }
+                    
+                    // Enable retry after 5 seconds
+                    setTimeout(() => {
+                        resetButton(vendor, accountIndex);
+                    }, 5000);
+                }
+            });
+        }
+        
+        function resetButton(vendor, accountIndex) {
+            const btnId = `btn-${vendor}-${accountIndex}`;
+            const statusId = `status-${vendor}-${accountIndex}`;
+            const btn = document.getElementById(btnId);
+            const statusDiv = document.getElementById(statusId);
+            
+            btn.disabled = false;
+            btn.textContent = 'Download Invoice';
+            btn.classList.remove('btn-loading', 'btn-success', 'btn-error');
+            statusDiv.innerHTML = 'Status: <span class="status-text">Ready</span>';
+            
+            // Reset server state
+            fetch(`/reset/${vendor}/${accountIndex}`, {method: 'POST'});
+        }
+    </script>
+</body>
+</html>
