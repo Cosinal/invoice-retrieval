@@ -57,7 +57,41 @@ class ManitobaHydroDownloader(VendorDownloader):
         self.page.wait_for_timeout(random.randint(1000, 3000))
         self.take_screenshot('01_login_page')
 
-        self.page.wait_for_timeout(120000)
+        try:
+            # Selectors
+            username_selector = '#txtLogin'
+            password_selector = '#txtpwd'
+            sign_in_selector = '#btnlogin'
+
+            # Navigate and Enter Username
+            self.page.wait_for_selector(username_selector, state='visible', timeout=10000)
+            self.page.type(username_selector, self.username, delay = random.randint(100, 300))
+            self.logger.debug(f"Username entered: {self.username}")
+            self.page.wait_for_timeout(1000)
+
+            # Navigate and Enter Password
+            self.page.wait_for_selector(username_selector, state='visible', timeout=10000)
+            self.page.type(password_selector, self.password, delay = random.randint(100, 300))
+            self.logger.debug("Password Entered!")
+            self.page.wait_for_timeout(1000)
+
+            # Click Sign In Button
+            self.page.click(sign_in_selector)
+            self.logger.info("Sign In Button Clicked!")
+
+            self.page.wait_for_timeout(120000)
+
+        except PlaywrightTimeout as e:
+            self.logger.error(f"Login timeout: {e}")
+            self.take_screenshot('error_login_timeout')
+            raise
+
+        except Exception as e:
+            self.logger.error(f"Login failed: {e}", exc_info=True)
+            self.take_screenshot('error_login_failed')
+            raise
+
+
 
 
 
