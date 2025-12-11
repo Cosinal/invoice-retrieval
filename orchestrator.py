@@ -23,6 +23,7 @@ from ITC.integrations.email_notifier import send_invoice_email
 from ITC.downloaders.rogers import RogersDownloader
 from ITC.downloaders.enmax import EnmaxDownloader
 from ITC.downloaders.eastward import EastwardDownloader
+from ITC.downloaders.mhydro import ManitobaHydroDownloader
 
 
 # Future vendors:
@@ -45,7 +46,8 @@ if not DOWNLOAD_PATH:
 VENDORS ={
     'rogers': RogersDownloader(),
     'enmax': EnmaxDownloader(),
-    'eastward': EastwardDownloader()
+    'eastward': EastwardDownloader(),
+    'mhydro': ManitobaHydroDownloader()
     # Append with future vendors
 }
 
