@@ -52,64 +52,52 @@ class EnmaxDownloader(VendorDownloader):
     def login(self, account_index):
         """
         Enmax-specific login implementation
+        Start frpm homepage to avoid bot detection
         """
 
-        self.logger.info("Logging in to Enmax portal")
-        self.logger.info(f"Using username: {self.username}")
-        self.logger.info(f"Navigating to login URL: {self.login_url}")
-
-        # Navigate to login page
-        self.page.goto(self.login_url, wait_until='domcontentloaded', timeout=60000)
-
-        # Random human-like delay
-        self.page.wait_for_timeout(random.randint(1000, 3000))
-        self.take_screenshot("01_login_page")
+        homepage_url = "https://www.enmax.com/"
+        self.logger.info(f"Starting at Enmax homepage: {homepage_url}")
 
         try:
-            # Fill Username
-            self.page.wait_for_selector('#username', state='visible', timeout=10000)
-            self.page.wait_for_timeout(500)
-            self.page.click('#username') # Click to focus
-            self.page.wait_for_timeout(500)
-            self.page.type('#username', self.username, delay=random.randint(100,200))
+            # Navigate to homepage first
+            self.page.goto(homepage_url, wait_until="domcontentloaded", timeout = 30000)
+            self.page.wait_for_timeout(random.randint(2000, 4000))
+            self.take_screenshot('01_homepage')
+
+            # Click "Sign-In" button in top right
+            sign_in_button_selector = '#header > div.header_header__gO7fM > div.relative.w-full.bg-white.py-6.lg\:py-0.lg\:pt-6.lg\:px-20.lg\:pb-6 > div.w-full.hidden.lg\:flex.justify-between.items-center.m-auto.max-w-inner-content.gap-12 > div.header_right_content__iyUZ9 > a'
             
-            self.logger.debug("Username Entered")
-            self.page.wait_for_timeout(random.randint(500,1000))
+            self.page.wait_for_selector(sign_in_button_selector, state='visible', timeout=10000)
+            self.page.click(sign_in_button_selector)
+            self.logger.info("Clicked Sign-In Button")
 
-            # Tab to password field
-            self.logger.debug("Pressing Tab to move to password field")
+            # Wait for login page to load
+            username_selector = '#username'
+            self.page.wait_for_selector(username_selector, state='visible', timeout=30000)
+
+            # Enter Username
+            self.page.wait_for_timeout(random.randint(1000, 4000))
+
+            self.page.click(username_selector)
+            self.page.type(username_selector, self.username, delay = random.randint(100, 250))
+            self.logger.debug(f"Username Entered: {self.username}")
+
+            # Navigate and Enter Password
+            self.page.wait_for_timeout(random.randint(500, 1000))
             self.page.keyboard.press('Tab')
-            self.page.wait_for_timeout(random.randint(500, 1000))
+            self.page.wait_for_timeout(random.randint(300, 670))
 
-            # Fill password field
-            self.page.type('#current-password', self.password, delay=random.randint(100, 200))
-            self.logger.debug("Password Entered")
-            self.page.wait_for_timeout(random.randint(500, 1000))
+            self.page.type('#current-password', self.password, delay = random.randint(67, 250))
+            self.logger.debug("Entered Password")
+            self.page.wait_for_timeout(67000)
+
+            # Navigate and Finalize login
             
-            # Tab twice to reach sign-in button
-            self.logger.debug("Pressing Tab to move past password")
-            self.page.keyboard.press('Tab')
-            self.page.wait_for_timeout(random.randint(300, 600))
 
-            self.logger.debug("Pressing Tab Again to reach sign-in button")
-            self.page.keyboard.press('Tab')
-            self.page.wait_for_timeout(random.randint(500, 1000))
 
-            self.take_screenshot('01_before_signin')
 
-            # Press Enter to submit
-            self.logger.info("Pressing Enter to submit login form")
-            self.page.keyboard.press('Enter')
 
-            # Wait for navigation
-            self.logger.info("Waiting for login to complete")
-            self.page.wait_for_timeout(5000)
 
-            current_url = self.page.url
-            self.logger.info(f"Current URL: {current_url}")
-
-            self.take_screenshot('02_after_login')
-            self.logger.info("Login successful!")
 
         except PlaywrightTimeout as e:
             self.logger.error(f"Login timeout: {e}")
