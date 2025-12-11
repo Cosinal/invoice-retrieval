@@ -102,13 +102,28 @@ class ManitobaHydroDownloader(VendorDownloader):
 
     def navigate_to_invoices(self, account_index):
         """
-        Eastward-specific navigation to invoices page
+        Manitoba Hydro - specific navigation to invoices page
         """
+        
+        self.logger.info(f"Navigating to the invoice for account #{account_index + 1}")
 
-        self.logger.info(f"Navigating to invoices for account #{account_index + 1}")
+        try:
+            # The billing link should already be visible from login
 
-        # TODO: Implement Eastward navigation to invoices
-        pass
+            view_bill_selector = '#ContentPlaceHolder1_BillingUserControl_spn_ViewBill > div > a'
+            self.page.wait_for_selector(
+                view_bill_selector,
+                state='visible',
+                timeout=20000
+            )
+
+            self.logger.info("View Bill Link found!")
+
+        except Exception as e:
+            self.logger.error(f"Navigation failed: {e}", exc_info=True)
+            self.take_screenshot('error_navigation')
+            raise
+        
 
     def download_invoice(self, account_index):
         """
