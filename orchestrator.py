@@ -22,6 +22,9 @@ from ITC.integrations.email_notifier import send_invoice_email
 # Load Vendor Downloaders
 from ITC.downloaders.rogers import RogersDownloader
 from ITC.downloaders.enmax import EnmaxDownloader
+from ITC.downloaders.eastward import EastwardDownloader
+
+
 # Future vendors:
 
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -41,7 +44,8 @@ if not DOWNLOAD_PATH:
 # Map vendor names to their downloader classes
 VENDORS ={
     'rogers': RogersDownloader(),
-    'enmax': EnmaxDownloader()
+    'enmax': EnmaxDownloader(),
+    'eastward': EastwardDownloader()
     # Append with future vendors
 }
 
