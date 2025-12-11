@@ -220,14 +220,25 @@ class VendorDownloader(ABC):
 
         with sync_playwright() as playwright:
             try:
-                
-                # Launch browser
-                self.browser = playwright.chromium.launch(
-                    headless=headless,
-                    slow_mo=500
-                )
-                self.logger.info("Browser launched")
+                    
+                try:
+                    
+                    # Launch browser
+                    self.browser = playwright.chromium.launch(
+                        headless=False,
+                        slow_mo=500,
+                        channel ="msedge"
+                    )
+                    self.logger.info("Browser launched (MS Edge)")
+                except Exception as e:
+                    self.logger.warning(f"Edge not available, using Chromium: {e}")
+                    self.browser = playwright.chromium.launch(
+                        headless=False,
+                        slow_mo=500
+                    )
+                    self.logger.info("Browser launched (chromium)")
 
+                # Create browser context
                 self.context = self.browser.new_context(
                     accept_downloads=True,
                     viewport={
@@ -254,7 +265,7 @@ class VendorDownloader(ABC):
                 else:
                     self.logger.error("FAILED: No file downloaded")
                     return None # Return None on failure
-            
+        
             except Exception as e:
                 self.logger.error(f"Critical Error: {e}", exc_info=True)
                 if self.browser:

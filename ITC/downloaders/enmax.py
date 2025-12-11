@@ -66,31 +66,50 @@ class EnmaxDownloader(VendorDownloader):
         self.take_screenshot("01_login_page")
 
         try:
-
-            # Fill username
+            # Fill Username
             self.page.wait_for_selector('#username', state='visible', timeout=10000)
-            self.page.fill('#username', '')
-            self.page.type('#username', self.username, delay=random.randint(100, 200))
-            self.logger.debug("Entered username")
-            self.page.wait_for_timeout(1000)
+            self.page.wait_for_timeout(500)
+            self.page.click('#username') # Click to focus
+            self.page.wait_for_timeout(500)
+            self.page.type('#username', self.username, delay=random.randint(100,200))
+            
+            self.logger.debug("Username Entered")
+            self.page.wait_for_timeout(random.randint(500,1000))
 
-            # Fill password
-            self.page.wait_for_selector('#current-password', state='visible', timeout=10000)
+            # Tab to password field
+            self.logger.debug("Pressing Tab to move to password field")
+            self.page.keyboard.press('Tab')
+            self.page.wait_for_timeout(random.randint(500, 1000))
+
+            # Fill password field
             self.page.type('#current-password', self.password, delay=random.randint(100, 200))
-            self.logger.debug("Entered password")
-            self.page.wait_for_timeout(1000)
+            self.logger.debug("Password Entered")
+            self.page.wait_for_timeout(random.randint(500, 1000))
+            
+            # Tab twice to reach sign-in button
+            self.logger.debug("Pressing Tab to move past password")
+            self.page.keyboard.press('Tab')
+            self.page.wait_for_timeout(random.randint(300, 600))
 
-            # Click Sign-In button
-            sign_in_button = '#js-subscription-form > div > button'
-            self.page.click(sign_in_button, force=True)
-            self.logger.debug("Clicked Sign-In button")
+            self.logger.debug("Pressing Tab Again to reach sign-in button")
+            self.page.keyboard.press('Tab')
+            self.page.wait_for_timeout(random.randint(500, 1000))
 
-            # Wait for login to complete
-            # TODO: Replace this with the actual selector of an element that appears after login
-            self.page.wait_for_timeout(5000) # Temporary wait
+            self.take_screenshot('01_before_signin')
 
-            self.take_screenshot("02_post_login")
-            self.logger.info("Login successful")
+            # Press Enter to submit
+            self.logger.info("Pressing Enter to submit login form")
+            self.page.keyboard.press('Enter')
+
+            # Wait for navigation
+            self.logger.info("Waiting for login to complete")
+            self.page.wait_for_timeout(5000)
+
+            current_url = self.page.url
+            self.logger.info(f"Current URL: {current_url}")
+
+            self.take_screenshot('02_after_login')
+            self.logger.info("Login successful!")
 
         except PlaywrightTimeout as e:
             self.logger.error(f"Login timeout: {e}")
