@@ -79,7 +79,15 @@ class ManitobaHydroDownloader(VendorDownloader):
             self.page.click(sign_in_selector)
             self.logger.info("Sign In Button Clicked!")
 
-            self.page.wait_for_timeout(120000)
+            # Waut for View Bill sector 
+            view_bill_selector = '#ContentPlaceHolder1_BillingUserControl_spn_ViewBill > div > a'
+            self.page.wait_for_selector(
+                view_bill_selector,
+                state='visible',
+                timeout=20000
+            )
+
+            self.take_screenshot('02_after_login')
 
         except PlaywrightTimeout as e:
             self.logger.error(f"Login timeout: {e}")
@@ -90,16 +98,6 @@ class ManitobaHydroDownloader(VendorDownloader):
             self.logger.error(f"Login failed: {e}", exc_info=True)
             self.take_screenshot('error_login_failed')
             raise
-
-
-
-
-
-
-
-
-
-
 
 
     def navigate_to_invoices(self, account_index):
