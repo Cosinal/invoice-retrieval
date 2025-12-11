@@ -24,7 +24,7 @@ class ManitobaHydroDownloader(VendorDownloader):
 
     # Vendor metadata for pdfparsing
     VENDOR_METADATA = {
-        'data_bbox': (0, 0, 0, 0), # will adjust later
+        'date_bbox': (330, 99, 462, 111), # will adjust later
         'date_format': '%b %d, %Y'
     }
 
@@ -118,19 +118,120 @@ class ManitobaHydroDownloader(VendorDownloader):
             )
 
             self.logger.info("View Bill Link found!")
+            self.take_screenshot('03_bill_link_ready')
 
         except Exception as e:
             self.logger.error(f"Navigation failed: {e}", exc_info=True)
             self.take_screenshot('error_navigation')
             raise
-        
+
 
     def download_invoice(self, account_index):
         """
-        Eastward-specific invoice download implementation
+        Manitoba Hydro - specific download process
+        PDF opens in new tab when clicking 'View Bill'
         """
+        
+        self.logger.info("Downloading invoice...")
 
-        self.logger.info(f"Downloading invoice for account #{account_index + 1}")
+        try:
+            bill_selector = '#ContentPlaceHolder1_BillingUserControl_spn_ViewBill > div > a'
 
-        #TODO: Implement Eastward invoice download
-        pass
+            # Click the View Bill link (Opens PDF if new tab and switches to it)
+            with self.context.expect_page() as new_page_info:
+                self.page.click(bill_selector)
+                self.logger.info("Clicked 'View Bill'")
+
+            # Get the new page (PDF Tab)
+            pdf_page = new_page_info.value
+
+            # Wait for PDF to fully load
+            pdf_page.wait_for_load_state('load', timeout=30000)
+            pdf_url = pdf_page.url
+            self.logger.info(f"PDF Loaded at: {pdf_url}")
+
+            # Download the PDF content
+            response = self.context.request.get(pdf_url)
+
+            if not response.ok:
+                self.logger.error(f"Failed to download PDF: HTTP {response.status}")
+                pdf_page.close()
+                return None
+
+            # Save file temporarily
+            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+            temp_filename = f"temp_mhydro_{account_index}_{timestamp}.pdf"
+            temp_path = self.download_dir / temp_filename
+
+            with open(temp_path, 'wb') as f:
+                f.write(response.body())
+
+            self.logger.info(f"Downloaded to temporary file: {temp_filename}")
+
+            # Close the PDF tab
+            pdf_page.close()
+
+            # Extract invoice date from PDF using vendor-level metadata
+            invoice_date = self.extract_date_from_pdf(
+                pdf_path=temp_path,
+                bbox_coords=self.VENDOR_METADATA['date_bbox'],
+                date_format=self.VENDOR_METADATA['date_format']
+            )
+
+            if invoice_date:
+                self.logger.info(f"Extracted invoice date: {invoice_date.strftime('%Y-%m-%d')}")
+            else:
+                self.logger.warning("Could not extract invoice date, using current date")
+            
+            # Generate proper filename
+            filename = self.generate_file_name(account_index, invoice_date)
+
+            # Rename temp file to final filename
+            final_path = self.download_dir / filename
+            temp_path.rename(final_path)
+
+            self.logger.info(f"Successfully renamed to: {filename}")
+            self.logger.info(f"Saved to: {final_path.absolute()}")
+
+            return str(final_path)
+
+        except Exception as e:
+            self.logger.error(f"Failed to process account #{account_index + 1}: {e}")
+            self.take_screenshot(f'error_account_{account_index + 1}')
+            return None
+        
+
+    def extract_date_from_pdf(self, pdf_path, bbox_coords, date_format="%b %d, %Y"):
+      """
+      Manitoba Hydro specific: Strip duplicate French month name
+      Overrides base class method
+      """
+      
+      import re
+      import pdfplumber
+
+      try:
+          with pdfplumber.open(pdf_path) as pdf:
+              first_page = pdf.pages[0]
+              cropped = first_page.within_bbox(bbox_coords)
+              text = cropped.extract_text()
+
+              if not text:
+                  self.logger.warning("No text found in the bounding box. Use bbox_finder.py")
+                  return None
+              
+              text = text.strip()
+              self.logger.debug(f"Extracted text from bbox: '{text}")
+
+              # Remove the duplicate French Month
+              text = re.sub(r'\s[A-Z]{3}\s', ' ', text)
+              self.logger.debug(f"After stripping French month: '{text}")
+
+              # Parse
+              parsed_date = datetime.strptime(text, '%b %d %Y')
+              self.logger.info(f"Successfully parsed invoice date: {parsed_date.strftime('%Y-%m-%d')}")
+              return parsed_date
+          
+      except Exception as e:
+          self.logger.error(f"Failed to extract date from PDF: {e}", exc_info=True)
+          return None
