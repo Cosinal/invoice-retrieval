@@ -1,0 +1,991 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Invoice Automation Dashboard</title>
+  <style>
+    :root{
+      --bg-0:#050816;
+      --bg-1:#070B1E;
+      --card:#0B122A;
+      --card-2:#0E1733;
+      --border:rgba(255,255,255,.08);
+      --text:#EAF0FF;
+      --muted:rgba(234,240,255,.72);
+
+      --accent:#7C3AED;     /* violet */
+      --accent-2:#06B6D4;   /* cyan */
+      --good:#22C55E;       /* green */
+      --bad:#EF4444;        /* red */
+      --warn:#F59E0B;       /* amber */
+      --shadow: 0 20px 60px rgba(0,0,0,.55);
+      --radius: 18px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:
+        radial-gradient(1200px 800px at 10% 0%, rgba(124,58,237,.25) 0%, rgba(124,58,237,0) 60%),
+        radial-gradient(1000px 700px at 90% 10%, rgba(6,182,212,.20) 0%, rgba(6,182,212,0) 55%),
+        radial-gradient(900px 600px at 50% 110%, rgba(34,197,94,.18) 0%, rgba(34,197,94,0) 55%),
+        linear-gradient(180deg, var(--bg-0), var(--bg-1));
+      overflow-x:hidden;
+    }
+
+    a{color:inherit}
+    .container{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 18px 48px;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom: 18px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width: 260px;
+    }
+
+    .logo{
+      width:42px;height:42px;
+      border-radius: 14px;
+      position:relative;
+      background:
+        radial-gradient(20px 20px at 30% 25%, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 60%),
+        linear-gradient(135deg, rgba(124,58,237,.95), rgba(6,182,212,.9));
+      box-shadow: 0 14px 30px rgba(124,58,237,.25), 0 10px 26px rgba(6,182,212,.18);
+      overflow:hidden;
+    }
+
+    .logo:after{
+      content:"";
+      position:absolute; inset:-1px;
+      background:
+        radial-gradient(28px 28px at 70% 85%, rgba(34,197,94,.20) 0%, rgba(34,197,94,0) 60%);
+      mix-blend-mode: screen;
+      pointer-events:none;
+    }
+
+    .brand h1{
+      font-size: 16px;
+      line-height: 1.1;
+      margin:0;
+      font-weight: 650;
+      letter-spacing: .2px;
+    }
+    .brand p{
+      margin:4px 0 0 0;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+
+    .pill{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 28px rgba(0,0,0,.22);
+      color: var(--muted);
+      font-size: 12.5px;
+      white-space: nowrap;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:99px;
+      background: rgba(255,255,255,.55);
+      box-shadow: 0 0 0 4px rgba(255,255,255,.08);
+    }
+    .dot.good{background: var(--good); box-shadow: 0 0 0 4px rgba(34,197,94,.18);}
+    .dot.warn{background: var(--warn); box-shadow: 0 0 0 4px rgba(245,158,11,.18);}
+    .dot.bad{background: var(--bad); box-shadow: 0 0 0 4px rgba(239,68,68,.18);}
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 18px;
+    }
+    @media (max-width: 920px){
+      .grid{grid-template-columns: 1fr}
+      .brand{min-width:auto}
+    }
+
+    .card{
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card-inner{ padding: 18px; }
+    .card-header{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+      padding: 18px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      background:
+        radial-gradient(900px 240px at 20% -20%, rgba(124,58,237,.18) 0%, rgba(124,58,237,0) 50%),
+        radial-gradient(900px 240px at 90% -40%, rgba(6,182,212,.14) 0%, rgba(6,182,212,0) 55%),
+        rgba(0,0,0,.10);
+    }
+    .card-header h2{
+      margin:0;
+      font-size: 14px;
+      font-weight: 650;
+      letter-spacing: .2px;
+    }
+    .card-header p{
+      margin:6px 0 0 0;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.35;
+      max-width: 68ch;
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+
+    .btn{
+      appearance:none;
+      border:none;
+      cursor:pointer;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-weight: 650;
+      letter-spacing: .2px;
+      color: var(--text);
+      background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(6,182,212,.92));
+      box-shadow: 0 16px 30px rgba(124,58,237,.22), 0 14px 30px rgba(6,182,212,.14);
+      transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      user-select:none;
+    }
+    .btn:hover{ transform: translateY(-1px); filter: brightness(1.03); }
+    .btn:active{ transform: translateY(0px); filter: brightness(.98); }
+    .btn:disabled{
+      cursor:not-allowed;
+      opacity:.55;
+      filter:saturate(.8);
+      box-shadow:none;
+      transform:none;
+    }
+
+    .btn.secondary{
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow:none;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .btn.secondary:hover{ filter: brightness(1.05); transform: translateY(-1px); }
+    .btn.secondary:disabled{ opacity:.45; }
+
+    .icon{
+      width: 18px; height: 18px; display:inline-block;
+    }
+
+    .row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+      flex-wrap:wrap;
+    }
+
+    .metric{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width: 240px;
+    }
+    .metric .label{
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing:.18px;
+    }
+    .metric .value{
+      font-size: 16px;
+      font-weight: 650;
+    }
+    .sub{
+      font-size: 12px;
+      color: var(--muted);
+      line-height:1.35;
+    }
+
+    .progress-wrap{
+      margin-top: 14px;
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+    }
+    .progressbar{
+      height: 12px;
+      border-radius: 999px;
+      overflow:hidden;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.08);
+      position:relative;
+    }
+    .progressbar > .fill{
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(124,58,237,.95), rgba(6,182,212,.92), rgba(34,197,94,.90));
+      transition: width .35s ease;
+      position:relative;
+    }
+    .progressbar > .fill:after{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.25), rgba(255,255,255,0), rgba(255,255,255,.22));
+      opacity:.35;
+      transform: translateX(-60%);
+      animation: shimmer 1.7s ease-in-out infinite;
+    }
+    @keyframes shimmer{
+      0%{transform: translateX(-70%); opacity:.0}
+      35%{opacity:.32}
+      100%{transform: translateX(120%); opacity:0}
+    }
+
+    .statusline{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+      flex-wrap:wrap;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 650;
+      letter-spacing: .15px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      color: var(--muted);
+    }
+    .badge.good{ border-color: rgba(34,197,94,.28); background: rgba(34,197,94,.10); color: rgba(207,255,226,.95); }
+    .badge.bad{ border-color: rgba(239,68,68,.30); background: rgba(239,68,68,.10); color: rgba(255,215,215,.95); }
+    .badge.warn{ border-color: rgba(245,158,11,.30); background: rgba(245,158,11,.10); color: rgba(255,239,208,.95); }
+
+    .spinner{
+      width: 16px; height: 16px;
+      border-radius: 999px;
+      border: 2px solid rgba(255,255,255,.22);
+      border-top-color: rgba(255,255,255,.85);
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .hidden{ display:none !important; }
+
+    .results{
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .result-item{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.12);
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+    }
+    .result-item:hover{
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,.14);
+      background: rgba(0,0,0,.16);
+    }
+    .result-left{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width: 0;
+    }
+    .result-title{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      font-weight: 650;
+      font-size: 13px;
+      letter-spacing:.1px;
+      min-width: 0;
+    }
+    .result-title .text{
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 620px;
+    }
+    @media (max-width: 920px){
+      .result-title .text{max-width: 62vw;}
+    }
+    .result-meta{
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+
+    .result-icon{
+      width: 22px;
+      height: 22px;
+      display:grid;
+      place-items:center;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      flex: 0 0 auto;
+    }
+    .result-icon.good{ border-color: rgba(34,197,94,.28); background: rgba(34,197,94,.10); }
+    .result-icon.bad{ border-color: rgba(239,68,68,.30); background: rgba(239,68,68,.10); }
+
+    .small-btn{
+      appearance:none;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      color: var(--muted);
+      border-radius: 12px;
+      padding: 9px 10px;
+      cursor:pointer;
+      font-weight: 650;
+      font-size: 12px;
+      transition: transform .12s ease, filter .12s ease, border-color .12s ease;
+      user-select:none;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .small-btn:hover{ transform: translateY(-1px); filter: brightness(1.04); border-color: rgba(255,255,255,.18); }
+    .small-btn:active{ transform: translateY(0px); filter: brightness(.98); }
+    .small-btn:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
+
+    .toast{
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      max-width: 520px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(10,15,34,.72);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      padding: 12px 14px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.55);
+      display:flex;
+      align-items:flex-start;
+      gap: 10px;
+      transform: translateY(14px);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .2s ease, transform .2s ease;
+    }
+    .toast.show{
+      opacity:1;
+      transform: translateY(0px);
+      pointer-events:auto;
+    }
+    .toast .t-title{
+      font-weight: 650;
+      font-size: 13px;
+      margin:0;
+    }
+    .toast .t-body{
+      margin:4px 0 0 0;
+      font-size: 12px;
+      color: var(--muted);
+      line-height:1.35;
+    }
+
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      font-size: 11px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-bottom-color: rgba(255,255,255,.18);
+      background: rgba(255,255,255,.04);
+      padding: 2px 6px;
+      border-radius: 8px;
+      color: rgba(234,240,255,.78);
+    }
+
+    .footer-note{
+      margin-top: 14px;
+      color: rgba(234,240,255,.55);
+      font-size: 12px;
+      line-height:1.35;
+    }
+
+    /* Smooth section reveal */
+    .reveal{
+      animation: reveal .18s ease-out both;
+    }
+    @keyframes reveal{
+      from{opacity:0; transform: translateY(6px);}
+      to{opacity:1; transform: translateY(0px);}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Invoice Automation</h1>
+          <p>Internal dashboard for multi-vendor invoice downloads</p>
+        </div>
+      </div>
+
+      <div class="pill" title="Backend connectivity">
+        <span id="healthDot" class="dot"></span>
+        <span id="healthText">Ready</span>
+        <span class="kbd">/api</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Left: Control + Progress -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Run automation</h2>
+            <p>Trigger a headless batch run across all configured vendor accounts. Progress updates every 2 seconds.</p>
+          </div>
+
+          <div class="actions">
+            <button id="startBtn" class="btn">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M8.5 5.5v13l11-6.5-11-6.5z" fill="rgba(255,255,255,.92)"/>
+              </svg>
+              Download All Invoices
+            </button>
+            <button id="resetBtn" class="btn secondary" title="Clear UI (does not cancel a running job)">
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <div class="card-inner">
+          <div id="progressSection" class="hidden">
+            <div class="row">
+              <div class="metric">
+                <div class="label">Overall progress</div>
+                <div id="progressText" class="value">0 out of 0 accounts completed</div>
+                <div id="currentStep" class="sub">Starting…</div>
+              </div>
+
+              <div class="badge warn" id="statusBadge">
+                <span class="spinner" id="spinner" aria-hidden="true"></span>
+                <span id="statusLabel">Running</span>
+              </div>
+            </div>
+
+            <div class="progress-wrap">
+              <div class="statusline">
+                <div class="sub"><span id="percentLabel">0%</span> complete</div>
+                <div class="sub">Polling every 2s</div>
+              </div>
+              <div class="progressbar" aria-label="Progress bar">
+                <div id="progressFill" class="fill"></div>
+              </div>
+            </div>
+
+            <div class="footer-note">
+              Tip: If a vendor portal is slow, the status may pause on a step for a bit. The job is still running as long as the spinner is active.
+            </div>
+          </div>
+
+          <div id="idleSection" class="reveal">
+            <div class="row">
+              <div class="metric">
+                <div class="label">Status</div>
+                <div class="value">Idle</div>
+                <div class="sub">Click <b>Download All Invoices</b> to start. Results will appear automatically.</div>
+              </div>
+              <div class="badge" id="idleBadge">
+                <span class="dot"></span>
+                <span>Waiting</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Results -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Results</h2>
+            <p>Each vendor account will show a success or failure record once completed.</p>
+          </div>
+          <div class="actions">
+            <button id="copyBtn" class="small-btn" disabled title="Copy results to clipboard">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M9 9h10v10H9V9Z" stroke="rgba(234,240,255,.85)" stroke-width="1.6"/>
+                <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" stroke="rgba(234,240,255,.55)" stroke-width="1.6"/>
+              </svg>
+              Copy
+            </button>
+            <button id="clearBtn" class="small-btn" title="Clear results list">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M6 7h12" stroke="rgba(234,240,255,.75)" stroke-width="1.6" stroke-linecap="round"/>
+                <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="rgba(234,240,255,.75)" stroke-width="1.6" stroke-linecap="round"/>
+                <path d="M8 7l1 14h6l1-14" stroke="rgba(234,240,255,.55)" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <div class="card-inner">
+          <div id="resultsEmpty" class="sub reveal">
+            No results yet. Start a run to see completed downloads here.
+          </div>
+          <div id="resultsList" class="results"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite">
+    <div id="toastIcon" class="result-icon" aria-hidden="true">•</div>
+    <div>
+      <p id="toastTitle" class="t-title">Notice</p>
+      <p id="toastBody" class="t-body">…</p>
+    </div>
+  </div>
+
+  <script>
+    // --- Configuration ---
+    const START_ENDPOINT = "/api/start-job";
+    const STATUS_ENDPOINT_PREFIX = "/api/job-status/";
+    const POLL_MS = 2000;
+
+    // --- State ---
+    let currentJobId = null;
+    let pollTimer = null;
+    let lastRenderedResultsKey = ""; // used to avoid re-render thrash
+    let lastStatus = null;
+
+    // --- Elements ---
+    const startBtn = document.getElementById("startBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const idleSection = document.getElementById("idleSection");
+    const progressSection = document.getElementById("progressSection");
+
+    const progressText = document.getElementById("progressText");
+    const currentStep = document.getElementById("currentStep");
+    const progressFill = document.getElementById("progressFill");
+    const percentLabel = document.getElementById("percentLabel");
+
+    const statusBadge = document.getElementById("statusBadge");
+    const statusLabel = document.getElementById("statusLabel");
+    const spinner = document.getElementById("spinner");
+
+    const resultsList = document.getElementById("resultsList");
+    const resultsEmpty = document.getElementById("resultsEmpty");
+
+    const copyBtn = document.getElementById("copyBtn");
+    const clearBtn = document.getElementById("clearBtn");
+
+    const healthDot = document.getElementById("healthDot");
+    const healthText = document.getElementById("healthText");
+
+    const toast = document.getElementById("toast");
+    const toastIcon = document.getElementById("toastIcon");
+    const toastTitle = document.getElementById("toastTitle");
+    const toastBody = document.getElementById("toastBody");
+
+    // --- Helpers ---
+    function titleCase(s){
+      if(!s) return "";
+      return String(s).replace(/[_-]+/g," ").replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function fmtVendor(v){
+      if(!v) return "";
+      // keep common names friendly
+      const map = { "mhydro":"Manitoba Hydro", "hwater":"Halifax Water", "rogers":"Rogers" };
+      return map[String(v).toLowerCase()] || titleCase(v);
+    }
+
+    function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+
+    function percent(completed, total){
+      if(!total || total <= 0) return 0;
+      return clamp(Math.round((completed / total) * 100), 0, 100);
+    }
+
+    function setBadge(kind, label, spinning){
+      statusBadge.classList.remove("good","bad","warn");
+      statusBadge.classList.add(kind);
+      statusLabel.textContent = label;
+
+      if(spinning){
+        spinner.classList.remove("hidden");
+      } else {
+        spinner.classList.add("hidden");
+      }
+    }
+
+    function showToast(kind, title, body){
+      toastIcon.classList.remove("good","bad");
+      toastIcon.classList.add(kind === "good" ? "good" : (kind === "bad" ? "bad" : ""));
+      toastIcon.textContent = kind === "good" ? "✓" : (kind === "bad" ? "!" : "•");
+      toastTitle.textContent = title;
+      toastBody.textContent = body;
+
+      toast.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove("show"), 3200);
+    }
+
+    function setHealth(kind, text){
+      healthDot.classList.remove("good","warn","bad");
+      healthText.textContent = text;
+      if(kind) healthDot.classList.add(kind);
+    }
+
+    function showProgressUI(){
+      idleSection.classList.add("hidden");
+      progressSection.classList.remove("hidden");
+      progressSection.classList.add("reveal");
+    }
+
+    function showIdleUI(){
+      progressSection.classList.add("hidden");
+      idleSection.classList.remove("hidden");
+      idleSection.classList.add("reveal");
+    }
+
+    function clearResults(){
+      resultsList.innerHTML = "";
+      resultsEmpty.classList.remove("hidden");
+      copyBtn.disabled = true;
+      lastRenderedResultsKey = "";
+    }
+
+    function resultsToText(job){
+      const lines = [];
+      const results = (job && job.results) ? job.results : [];
+      for(const r of results){
+        const vendor = fmtVendor(r.vendor);
+        const acct = (typeof r.account === "number") ? (r.account + 1) : r.account;
+        if(r.status === "success"){
+          lines.push(`✅ ${vendor} Account ${acct} - ${r.filename || ""}`.trim());
+        } else {
+          lines.push(`❌ ${vendor} Account ${acct} - Error: ${r.error || "Unknown error"}`);
+        }
+      }
+      return lines.join("\n");
+    }
+
+    function renderResults(job){
+      const results = job.results || [];
+      const key = JSON.stringify(results.map(r => [r.vendor, r.account, r.status, r.filename || "", r.error || ""]));
+
+      if(key === lastRenderedResultsKey) return;
+      lastRenderedResultsKey = key;
+
+      if(results.length === 0){
+        resultsEmpty.classList.remove("hidden");
+        copyBtn.disabled = true;
+        return;
+      }
+
+      resultsEmpty.classList.add("hidden");
+      copyBtn.disabled = false;
+
+      // re-render list (simple + reliable)
+      resultsList.innerHTML = "";
+
+      for(const r of results){
+        const isOk = r.status === "success";
+        const vendor = fmtVendor(r.vendor);
+        const acct = (typeof r.account === "number") ? (r.account + 1) : r.account;
+
+        const item = document.createElement("div");
+        item.className = "result-item reveal";
+
+        const left = document.createElement("div");
+        left.className = "result-left";
+
+        const title = document.createElement("div");
+        title.className = "result-title";
+
+        const icon = document.createElement("div");
+        icon.className = "result-icon " + (isOk ? "good" : "bad");
+        icon.textContent = isOk ? "✓" : "!";
+
+        const text = document.createElement("div");
+        text.className = "text";
+        if(isOk){
+          text.textContent = `${vendor} Account ${acct} — ${r.filename || "Downloaded"}`;
+        } else {
+          text.textContent = `${vendor} Account ${acct} — Failed`;
+        }
+
+        title.appendChild(icon);
+        title.appendChild(text);
+
+        const meta = document.createElement("div");
+        meta.className = "result-meta";
+
+        if(isOk){
+          meta.textContent = "Saved and emailed (if enabled).";
+        } else {
+          meta.textContent = `Error: ${r.error || "Unknown error"}`;
+        }
+
+        left.appendChild(title);
+        left.appendChild(meta);
+
+        const badge = document.createElement("span");
+        badge.className = "badge " + (isOk ? "good" : "bad");
+        badge.textContent = isOk ? "Success" : "Failed";
+
+        item.appendChild(left);
+        item.appendChild(badge);
+
+        resultsList.appendChild(item);
+      }
+    }
+
+    function renderJob(job){
+      const total = job.total_accounts ?? 0;
+      const completed = job.completed_accounts ?? 0;
+      const p = percent(completed, total);
+
+      progressText.textContent = `${completed} out of ${total} accounts completed`;
+      percentLabel.textContent = `${p}%`;
+      progressFill.style.width = `${p}%`;
+
+      const v = fmtVendor(job.current_vendor);
+      const acct = (typeof job.current_account === "number") ? (job.current_account + 1) : job.current_account;
+
+      if(job.status === "running"){
+        currentStep.textContent = v ? `Running: ${v} — Account ${acct}` : "Running…";
+        setBadge("warn", "Running", true);
+      } else if(job.status === "pending"){
+        currentStep.textContent = "Queued…";
+        setBadge("warn", "Pending", true);
+      } else if(job.status === "completed"){
+        currentStep.textContent = "Completed successfully.";
+        setBadge("good", "Completed", false);
+      } else if(job.status === "failed"){
+        currentStep.textContent = "Job failed. See results for details.";
+        setBadge("bad", "Failed", false);
+      } else {
+        currentStep.textContent = "Status unknown.";
+        setBadge("warn", "Unknown", false);
+      }
+
+      renderResults(job);
+    }
+
+    function stopPolling(){
+      if(pollTimer){
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+    }
+
+    async function pollOnce(){
+      if(!currentJobId) return;
+      try{
+        const res = await fetch(STATUS_ENDPOINT_PREFIX + encodeURIComponent(currentJobId), {
+          headers: { "Accept": "application/json" }
+        });
+
+        if(!res.ok){
+          setHealth("bad", "Backend error");
+          showToast("bad", "Status error", `GET status failed (${res.status}).`);
+          return;
+        }
+
+        const data = await res.json();
+        if(!data || data.success !== true || !data.job){
+          setHealth("bad", "Bad response");
+          showToast("bad", "Bad response", "Backend returned unexpected JSON.");
+          return;
+        }
+
+        setHealth("good", "Connected");
+        lastStatus = data.job;
+
+        renderJob(data.job);
+
+        // If finished, stop polling and re-enable the button
+        if(data.job.status === "completed" || data.job.status === "failed"){
+          stopPolling();
+          startBtn.disabled = false;
+          startBtn.innerHTML = `
+            <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M8.5 5.5v13l11-6.5-11-6.5z" fill="rgba(255,255,255,.92)"/>
+            </svg>
+            Download All Invoices
+          `;
+
+          if(data.job.status === "completed"){
+            showToast("good", "Run completed", "All accounts have finished processing.");
+          } else {
+            showToast("bad", "Run failed", "One or more accounts failed. Check results.");
+          }
+        }
+
+      } catch(err){
+        setHealth("bad", "Offline");
+        showToast("bad", "Network error", "Could not reach backend.");
+      }
+    }
+
+    async function startJob(){
+      stopPolling();
+      currentJobId = null;
+      lastStatus = null;
+
+      showProgressUI();
+      clearResults();
+
+      startBtn.disabled = true;
+      startBtn.innerHTML = `
+        <span class="spinner" aria-hidden="true"></span>
+        Starting…
+      `;
+
+      // Reset progress visuals
+      progressFill.style.width = "0%";
+      percentLabel.textContent = "0%";
+      progressText.textContent = "0 out of 0 accounts completed";
+      currentStep.textContent = "Starting…";
+      setBadge("warn", "Starting", true);
+
+      try{
+        const res = await fetch(START_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          // Backend doesn't require body per spec; send empty JSON for consistency
+          body: JSON.stringify({})
+        });
+
+        if(!res.ok){
+          setHealth("bad", "Backend error");
+          startBtn.disabled = false;
+          startBtn.innerHTML = `
+            <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M8.5 5.5v13l11-6.5-11-6.5z" fill="rgba(255,255,255,.92)"/>
+            </svg>
+            Download All Invoices
+          `;
+          setBadge("bad", "Error", false);
+          showToast("bad", "Start failed", `POST /api/start-job failed (${res.status}).`);
+          return;
+        }
+
+        const data = await res.json();
+        if(!data || data.success !== true || !data.job_id){
+          setHealth("bad", "Bad response");
+          startBtn.disabled = false;
+          setBadge("bad", "Error", false);
+          showToast("bad", "Start failed", "Backend returned unexpected JSON.");
+          return;
+        }
+
+        currentJobId = data.job_id;
+        setHealth("good", "Connected");
+        showToast("good", "Job started", `Job ID: ${currentJobId}`);
+
+        // Poll immediately, then every 2s
+        await pollOnce();
+        pollTimer = setInterval(pollOnce, POLL_MS);
+
+        // Switch button to "Running…"
+        startBtn.innerHTML = `
+          <span class="spinner" aria-hidden="true"></span>
+          Running…
+        `;
+
+      } catch(err){
+        setHealth("bad", "Offline");
+        startBtn.disabled = false;
+        setBadge("bad", "Error", false);
+        showToast("bad", "Network error", "Could not reach backend to start job.");
+      }
+    }
+
+    function resetUI(){
+      stopPolling();
+      currentJobId = null;
+      lastStatus = null;
+      startBtn.disabled = false;
+      startBtn.innerHTML = `
+        <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M8.5 5.5v13l11-6.5-11-6.5z" fill="rgba(255,255,255,.92)"/>
+        </svg>
+        Download All Invoices
+      `;
+      setHealth(null, "Ready");
+      showIdleUI();
+      clearResults();
+      setBadge("warn", "Running", true);
+    }
+
+    // --- Event wiring ---
+    startBtn.addEventListener("click", startJob);
+    resetBtn.addEventListener("click", resetUI);
+
+    clearBtn.addEventListener("click", () => {
+      clearResults();
+      showToast("good", "Cleared", "Results list cleared.");
+    });
+
+    copyBtn.addEventListener("click", async () => {
+      if(!lastStatus) return;
+      try{
+        await navigator.clipboard.writeText(resultsToText(lastStatus));
+        showToast("good", "Copied", "Results copied to clipboard.");
+      } catch(e){
+        showToast("bad", "Copy failed", "Clipboard permission blocked.");
+      }
+    });
+
+    // Initial state
+    resetUI();
+  </script>
+</body>
+</html>
