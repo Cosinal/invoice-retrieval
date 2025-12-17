@@ -125,30 +125,32 @@ class HalifaxWaterDownloader(VendorDownloader):
 
                dropdown_selector = 'button.dropdown-toggle.dropdown-button'
                current_account_label_selector = 'p.mx-name-layout-snippetCall1-snippetCall2-text16'
+               option_selector = 'p.mx-name-layout-snippetCall1-snippetCall2-text9'
+
+               # Wait for header to exist
+               self.page.wait_for_selector(current_account_label_selector, state = 'visible', timeout = 20000)
 
                # Open dropdown
-               self.page.wait_for_selector(dropdown_selector, state = 'visible', timeout = 10000)
-               self.page.click(dropdown_selector)
+               dropdown = self.page.locator(f"{dropdown_selector}:visible").first
+               dropdown.click()
 
-               # Click desired account by text
-               self.page.get_by_text(target_text, exact = False).click()
-               self.logger.info(f"Clicked account option: {target_text}")
+               # Wait for options to appear
+               options = self.page.locator(option_selector)
+               options.first.wait_for(state = 'visible', timeout = 15000)
+
+               # Click the option that matches the target address
+               options.filter(has_text=target_text).first.click()
+               self.logger.info(f"Clicked dropdown option: {target_text}")
 
                # Confirm switch if modal appears
-               switch_button_selector = 'button:has-text("Switch")'
                try:
-                   self.page.wait_for_selector(switch_button_selector, state = 'visible', timeout = 5000)
-                   self.page.click(switch_button_selector)
-
+                   self.page.wait_for_selector('button:has-text("Switch")', state = 'visible', timeout = 5000)
+                   self.page.click('button:has-text("Switch")')
                except PlaywrightTimeout:
-                   self.logger.info("No account switch confirmation needed")
-
-                # Wait until the header shows the correct account
-               header = self.page.locator(current_account_label_selector)
-               header.wait_for(state = 'visible', timeout = 10000)
-               header.filter(has_text=target_text).wait_for(timeout=30000)
-
-               self.logger.info(f"Account successfully switched to: {target_text}")
+                   
+               # Wait until header updates to the selected account
+                header = self.page.locator(current_account_label_selector)
+                header.filter(has_text=target_text).wait_for(timeout=30000)
 
            # Step 2: Click "Billing & Payments" menu
            self.logger.info("Navigating to Billing & Payments")
