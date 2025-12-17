@@ -24,6 +24,7 @@ from ITC.downloaders.rogers import RogersDownloader
 from ITC.downloaders.enmax import EnmaxDownloader
 from ITC.downloaders.eastward import EastwardDownloader
 from ITC.downloaders.mhydro import ManitobaHydroDownloader
+from ITC.downloaders.halifaxwater import HalifaxWaterDownloader
 
 
 # Future vendors:
@@ -47,7 +48,8 @@ VENDORS ={
     'rogers': RogersDownloader(),
     'enmax': EnmaxDownloader(),
     'eastward': EastwardDownloader(),
-    'mhydro': ManitobaHydroDownloader()
+    'mhydro': ManitobaHydroDownloader(),
+    'hwater': HalifaxWaterDownloader()
     # Append with future vendors
 }
 
