@@ -9,9 +9,14 @@ from flask import Flask, jsonify, send_from_directory
 from dotenv import load_dotenv
 
 from ITC.web.job_manager import job_manager
+from ITC.integrations.email_notifier import EmailNotifier
+
 from ITC.downloaders.rogers import RogersDownloader
 from ITC.downloaders.mhydro import ManitobaHydroDownloader
 from ITC.downloaders.halifaxwater import HalifaxWaterDownloader
+
+# Load Email Instance
+email_notifier = EmailNotifier()
 
 # Load environment variables
 load_dotenv()
@@ -41,7 +46,13 @@ def run_automation_job(job_id):
     """
     Background task that runs all downloaders
     Updates job state as it progresses
+    Sends ONE email at the end with all downloaded invoices
     """
+
+    # Track successful downloads for batch email
+    downloaded_files = []
+
+
     try:
         # Mark job as started
         job_manager.mark_started(job_id)
@@ -80,6 +91,9 @@ def run_automation_job(job_id):
                             status='success',
                             filename=os.path.basename(result)
                         )
+                        
+                        # Add to email list
+                        downloaded_files.append(result)
                     
                     else:
                         job_manager.add_result(
@@ -102,6 +116,19 @@ def run_automation_job(job_id):
             
         # Mark job as completed
         job_manager.mark_completed(job_id)
+
+        # Send ONE email with all downloaded invoices
+        if downloaded_files or any(r['status'] == 'failed' for r in job_manager.get_jobs(job_id).results):
+            try:
+                job = job_manager.get_jobs(job_id)
+                email_notifier.send_batch_invoices(
+                    downloaded_files,
+                    job_results=job.results # Pass all results including failures
+                )
+            
+            except Exception as e:
+                # Log email error but don't fail the job
+                print(f"Warning: Failed to send batch email: {e}")
 
     except Exception as e:
         # Job-level failure

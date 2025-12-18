@@ -104,6 +104,128 @@ class EmailNotifier:
             logger.error(f"Failed to send email: {e}", exc_info=True)
             return False
         
+    def send_batch_invoices(self, invoice_paths, recipients=None, job_results=None):
+        """
+        Send multiple invoice PDFs in a single email
+
+        Args:
+            invoice_paths: List of paths to download invoice PDFs
+            recipients: Optional list of email addresses (Uses EMAIL_TO from .env if None)
+
+        Returns:
+            bool: True if email was sent successfully, False otherwise
+        """
+        
+        if not invoice_paths and not job_results:
+            logger.warning("No invoice files to send")
+            return False
+        
+        # Use provided recipient or default from .env
+        recipients = recipients or self.default_recipients
+
+        if not recipients:
+            logger.warning("No email recipients configured")
+            return False
+        
+        # Verify all files exist
+        valid_paths = []
+        for invoice_path in invoice_paths:
+            invoice_path = Path(invoice_path)
+            if invoice_path.exists():
+                valid_paths.append(invoice_path)
+            else:
+                logger.warning(f"Invoice file not found: {invoice_path}")
+
+        if not valid_paths and not job_results:
+            logger.error("No valid invoice files to send")
+            return False
+        
+        try:
+            from email.mime.text import MIMEText
+
+            # Create email message
+            msg = MIMEMultipart()
+            msg['From'] = self.from_email
+            msg['To'] = ', '.join(recipients)
+
+            # Subject line with count
+            success_count = len(valid_paths)
+
+            # Count failures if job_results provided
+            failed_count = 0
+            if job_results:
+                failed_count = len([r for r in job_results if r.get('status') == 'failed'])
+
+            if failed_count > 0:
+                msg['Subject'] = f"Batch Invoice Download - {success_count} succeeded, {failed_count} failed"
+
+            else:
+                msg['Subject'] = f"Batch Invoice Download - {success_count} invoice{'s' if success_count != 1 else '' }"
+
+            # Create email body
+            body_lines = []
+            body_lines.append("Invoice Download Report")
+            body_lines.append("=" * 60)
+            body_lines.append("")
+
+            # Summary
+            body_lines.append(f"Successfully downloaded: {success_count}")
+            if failed_count > 0:
+                body_lines.append(f"Failed: {failed_count}")
+            body_lines.append("")
+
+            # List failures with details
+            if job_results and failed_count > 0:
+                body_lines.append("Failed Downloads:")
+                body_lines.append("-" * 60)
+                for result in job_results:
+                    if result.get('status') == 'failed':
+                        vendor = result.get('vendor', 'Unknown').upper()
+                        account = result.get('account', '?')
+                        error = result.get('error', 'Unknown error')
+                        body_lines.append(f" x{vendor} - Account #{account + 1}")
+                        body_lines.append(f"  Error: {error}")
+                        body_lines.append("")
+                
+                body_lines.append("ACTION REQUIRED:")
+                body_lines.append("Please manually download the failed invoices or re-run")
+                body_lines.append("the automation for these accounts individually")
+                body_lines.append("")
+
+            body_lines.append("=" * 60)
+            body_lines.append("This is an automated message from the Invoice Automation System")
+
+            # Attach text body
+            body_text = "\n".join(body_lines)
+            msg.attach(MIMEText(body_text, 'plain'))
+            
+            # Attach all PDFs
+            for invoice_path in valid_paths:
+                with open(invoice_path, 'rb') as file:
+                    part = MIMEBase('application', 'pdf')
+                    part.set_payload(file.read())
+
+                encoders.encode_base64(part)
+                part.add_header(
+                    'Content-Disposition',
+                    f'attachment; filename={invoice_path.name}'
+                )
+
+                msg.attach(part)
+
+            # Send email
+            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
+                server.starttls()
+                server.login(self.username, self.password)
+                server.send_message(msg)
+
+            filenames = ', '.join([p.name for p in valid_paths])
+            logger.info(f"Batch email sent to {', '.join(recipients)}: {filenames}")
+            return True
+        
+        except Exception as e:
+            logger.error(f"Failed to send batch email: {e}", exc_info=True)
+            return False
 
     def test_connection(self):
         """
