@@ -18,7 +18,7 @@ class JobStatus(Enum):
 class Job:
     """ Represents a single automation job """
 
-    def __init__(self, job_id=None):
+    def __init__(self, job_id=None, metadata=None):
         self.job_id = job_id or str(uuid.uuid4())
         self.status = JobStatus.PENDING
         self.created_at = datetime.now()
@@ -35,8 +35,22 @@ class Job:
         self.results = [] # List of {vendor, account, status, filename, error}
         self.error_message = None
 
+        # Job metadata (email_to, mode, vendor, account, requested_by)
+        self.metadata = metadata or {}
+
+
     def to_dict(self):
         """ Convert job to dictionary for API response """
+        # Calculate percentage complete
+        percent_complete = 0
+        if self.total_accounts > 0:
+            percent_complete = round((self.completed_accounts / self.total_accounts) * 100)
+
+        # Create current label
+        current_label = None
+        if self.current_vendor and self.current_account is not None:
+            current_label = f"{self.current_vendor.upper()} - Account #{self.current_account + 1}"
+
         return {
             'job_id': self.job_id,
             'status': self.status.value,
@@ -48,19 +62,23 @@ class Job:
             'current_vendor': self.current_vendor,
             'current_account': self.current_account,
             'results': self.results,
-            'error_message': self.error_message
+            'error_message': self.error_message,
+            'metadata': self.metadata,
+            # Computed fiels for UI convenience
+            'percent_complete': percent_complete,
+            'current_label': current_label
         }
     
 class JobManager:
     """ Manages all automation jobs """
 
     def __init__(self):
-        self.jobs = {}
+        self.jobs = {} # job_id -> Job
         self.lock = threading.Lock()
 
-    def create_job(self):
-        """ Create a new job """
-        job = Job()
+    def create_job(self, metadata=None):
+        """ Create a new job with optional metadata """
+        job = Job(metadata=metadata)
         with self.lock:
             self.jobs[job.job_id] = job
         return job
@@ -69,6 +87,14 @@ class JobManager:
         """ Get job by ID """
         with self.lock:
             return self.jobs.get(job_id)
+        
+    def has_active_job(self):
+        """ Check if any job is currently PENDING or RUNNING """
+        with self.lock: 
+            for job in self.jobs.values():
+                if job.status in [JobStatus.PENDING, JobStatus.RUNNING]:
+                    return True
+            return False
         
     def update_job(self, job_id, **kwargs):
         """ Update job fields """
