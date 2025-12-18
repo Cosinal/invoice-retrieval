@@ -1,846 +1,995 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Invoice Automation Dashboard</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Invoice Automation</title>
   <style>
     :root{
-      --bg0:#070A12;
-      --bg1:#0B1020;
-      --card:rgba(255,255,255,.06);
-      --card2:rgba(255,255,255,.08);
-      --stroke:rgba(255,255,255,.10);
-      --text:#EAF0FF;
-      --muted:rgba(234,240,255,.72);
-      --muted2:rgba(234,240,255,.55);
-      --good:#22C55E;
-      --bad:#EF4444;
-      --warn:#F59E0B;
-      --accent:#7C3AED;
-      --accent2:#06B6D4;
-      --shadow: 0 16px 45px rgba(0,0,0,.45);
-      --radius: 18px;
-      --radius2: 14px;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      /* more "corporate" but still modern */
+      --bg0:#0b1220;
+      --bg1:#0f1a2e;
+      --card:#0f172a;
+      --card2:#111c33;
+      --stroke:rgba(255,255,255,.09);
+      --stroke2:rgba(255,255,255,.14);
+      --text:#e9eefc;
+      --muted:#c7d2fe;
+      --helper:#9ca3af; /* requested */
+      --primary:#2563eb;
+      --primary2:#1d4ed8;
+      --success:#22c55e;
+      --danger:#ef4444;
+      --warning:#f59e0b;
+      --shadow: 0 18px 50px rgba(0,0,0,.45);
+      --radius:16px;
+      --radius2:22px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
 
     *{box-sizing:border-box}
+    html,body{height:100%}
     body{
       margin:0;
-      font-family:var(--sans);
+      font-family:var(--font);
       color:var(--text);
       background:
-        radial-gradient(1200px 600px at 20% 0%, rgba(124,58,237,.35), transparent 60%),
-        radial-gradient(900px 500px at 80% 10%, rgba(6,182,212,.25), transparent 55%),
-        radial-gradient(900px 700px at 50% 100%, rgba(34,197,94,.10), transparent 60%),
+        radial-gradient(900px 520px at 15% 10%, rgba(37,99,235,.35), transparent 55%),
+        radial-gradient(900px 520px at 85% 18%, rgba(34,197,94,.22), transparent 55%),
+        radial-gradient(900px 520px at 68% 88%, rgba(99,102,241,.22), transparent 55%),
         linear-gradient(180deg, var(--bg0), var(--bg1));
-      min-height:100vh;
+      padding:28px 18px 40px;
     }
 
-    .wrap{
-      max-width: 1100px;
+    .shell{
+      max-width: 1180px;
       margin: 0 auto;
-      padding: 28px 18px 56px;
     }
 
     header{
       display:flex;
-      align-items:flex-start;
       justify-content:space-between;
-      gap:16px;
-      padding: 10px 6px 18px;
+      align-items:flex-start;
+      gap:14px;
+      margin-bottom:18px;
     }
 
-    .title{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-    }
-
-    h1{
+    .title h1{
       margin:0;
-      font-weight: 760;
-      letter-spacing: -0.02em;
-      font-size: clamp(22px, 3vw, 30px);
-      line-height: 1.05;
+      font-size:30px; /* bigger for “accountants/older users” */
+      letter-spacing:.2px;
+    }
+    .title p{
+      margin:8px 0 0;
+      color:var(--helper);
+      font-size:14px;
+      line-height:1.35;
+      max-width: 720px;
     }
 
-    .subtitle{
-      color:var(--muted);
-      font-size: 14px;
-      line-height: 1.35;
-      max-width: 70ch;
+    .pillRow{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
     }
 
     .pill{
       display:inline-flex;
       align-items:center;
       gap:8px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.05);
-      border: 1px solid var(--stroke);
-      color: var(--muted);
-      font-size: 12px;
-      white-space: nowrap;
+      padding:8px 12px;
+      border:1px solid var(--stroke);
+      border-radius:999px;
+      background:rgba(255,255,255,.04);
+      backdrop-filter: blur(10px);
+      font-size:13px;
+      color:rgba(233,238,252,.85);
+      user-select:none;
     }
+    .dot{
+      width:8px;height:8px;border-radius:50%;
+      background:var(--success);
+      box-shadow:0 0 0 3px rgba(34,197,94,.18);
+    }
+
+    .linkBtn{
+      background:transparent;
+      border:1px solid var(--stroke);
+      color:rgba(233,238,252,.9);
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:13px;
+      cursor:pointer;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+    }
+    .linkBtn:hover{transform:translateY(-1px); border-color:var(--stroke2); background:rgba(255,255,255,.05)}
+    .linkBtn:disabled{opacity:.55; cursor:not-allowed; transform:none}
 
     .grid{
       display:grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap: 16px;
+      grid-template-columns: 1.15fr .85fr;
+      gap:16px;
       align-items:start;
     }
 
     @media (max-width: 980px){
-      .grid{grid-template-columns: 1fr}
+      .grid{grid-template-columns:1fr}
+      header{flex-direction:column}
+      .pillRow{justify-content:flex-start}
     }
 
     .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
-      border: 1px solid var(--stroke);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--stroke);
+      border-radius:var(--radius2);
+      box-shadow:var(--shadow);
       overflow:hidden;
     }
 
-    .card .hd{
-      padding: 16px 16px 10px;
+    .cardInner{padding:16px 16px 18px}
+    .cardTop{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:12px;
+      gap:10px;
+      padding:14px 16px;
+      border-bottom:1px solid var(--stroke);
+      background:rgba(0,0,0,.12);
+    }
+    .cardTop .kicker{
+      font-size:12px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:rgba(233,238,252,.7);
+    }
+    .cardTop .heading{
+      margin-top:4px;
+      font-size:15px;
+      color:rgba(233,238,252,.96);
+      font-weight:700;
     }
 
-    .card .hd .left{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
+    .badge{
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      border:1px solid var(--stroke);
+      background:rgba(255,255,255,.04);
+      color:rgba(233,238,252,.88);
     }
+    .badge.success{border-color:rgba(34,197,94,.35); background:rgba(34,197,94,.10); color:#bbf7d0}
+    .badge.danger{border-color:rgba(239,68,68,.35); background:rgba(239,68,68,.10); color:#fecaca}
+    .badge.running{border-color:rgba(37,99,235,.45); background:rgba(37,99,235,.12); color:#c7d2fe}
+    .badge.muted{opacity:.85}
 
-    .card .hd .kicker{
-      color: var(--muted2);
-      font-size: 12px;
-      letter-spacing: .06em;
-      text-transform: uppercase;
+    label{
+      display:block;
+      font-size:12px;
+      color:rgba(233,238,252,.75);
+      margin-bottom:8px;
     }
-
-    .card .hd .name{
-      font-size: 16px;
-      font-weight: 720;
+    input{
+      width:100%;
+      padding:12px 12px;
+      border-radius:12px;
+      border:1px solid var(--stroke);
+      outline:none;
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      font-size:14px;
+      transition:border-color .12s ease, background .12s ease;
     }
-
-    .card .bd{
-      padding: 14px 16px 16px;
-      border-top: 1px solid rgba(255,255,255,.06);
+    input:focus{border-color:rgba(37,99,235,.55); background:rgba(255,255,255,.08)}
+    .help{
+      margin-top:8px;
+      color:var(--helper);
+      font-size:13px; /* bigger + requested color */
+      line-height:1.35;
     }
 
     .row{
       display:flex;
+      gap:10px;
       align-items:center;
-      gap: 10px;
-      flex-wrap: wrap;
+      flex-wrap:wrap;
+      margin-top:12px;
     }
-
-    .field{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      width: 100%;
-      max-width: 520px;
-    }
-
-    label{
-      font-size: 12px;
-      color: var(--muted2);
-    }
-
-    input[type="email"]{
-      width:100%;
-      padding: 12px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,.12);
-      outline: none;
-      background: rgba(0,0,0,.22);
-      color: var(--text);
-      font-size: 14px;
-    }
-
-    input[type="email"]::placeholder{ color: rgba(234,240,255,.35); }
 
     .btn{
-      appearance:none;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);
-      color: var(--text);
-      padding: 11px 12px;
-      border-radius: 12px;
-      font-weight: 650;
-      font-size: 14px;
-      cursor:pointer;
-      transition: transform .08s ease, background .2s ease, border-color .2s ease, opacity .2s ease;
+      position:relative;
       display:inline-flex;
       align-items:center;
-      gap: 10px;
+      justify-content:center;
+      gap:10px;
+      border-radius:12px;
+      border:1px solid var(--stroke);
+      padding:11px 14px;
+      font-size:14px;
+      font-weight:650;
+      color:rgba(233,238,252,.95);
+      background:rgba(255,255,255,.05);
+      cursor:pointer;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
       user-select:none;
+      white-space:nowrap;
     }
+    .btn:hover{transform:translateY(-1px); border-color:var(--stroke2); background:rgba(255,255,255,.07)}
+    .btn:active{transform:translateY(0px)}
+    .btn:disabled{opacity:.55; cursor:not-allowed; transform:none}
 
-    .btn:hover{ background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.20); }
-    .btn:active{ transform: translateY(1px) scale(.99); }
-    .btn[disabled]{ opacity:.55; cursor:not-allowed; }
-
+    /* hierarchy */
     .btn.primary{
-      background: linear-gradient(135deg, rgba(124,58,237,.90), rgba(6,182,212,.75));
-      border-color: rgba(255,255,255,.20);
-      box-shadow: 0 10px 28px rgba(124,58,237,.22);
+      background:linear-gradient(180deg, rgba(37,99,235,.95), rgba(29,78,216,.95));
+      border-color:rgba(37,99,235,.55);
+      box-shadow: 0 12px 30px rgba(37,99,235,.25);
     }
-    .btn.primary:hover{ filter: brightness(1.05); }
-    .btn.ghost{
-      background: transparent;
-      border-color: rgba(255,255,255,.14);
+    .btn.primary:hover{background:linear-gradient(180deg, rgba(37,99,235,1), rgba(29,78,216,1))}
+    .btn.secondary{
+      background:transparent;
+      border-color:rgba(255,255,255,.16);
     }
 
     .btn.small{
-      padding: 9px 10px;
-      border-radius: 11px;
-      font-size: 13px;
-      font-weight: 650;
+      padding:9px 12px;
+      border-radius:12px;
+      font-size:13px;
+      font-weight:650;
     }
 
-    .hint{
-      color: var(--muted2);
-      font-size: 12px;
-      line-height: 1.35;
+    .miniCode{
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      background:rgba(255,255,255,.04);
+      color:rgba(233,238,252,.86);
     }
 
-    .split{
-      display:flex;
-      gap:12px;
-      align-items:flex-end;
-      justify-content:space-between;
-      flex-wrap: wrap;
-    }
-
-    .progressWrap{
+    .btn.loading{pointer-events:none}
+    .btn .btnSpin{
+      width:14px;height:14px;border-radius:50%;
+      border:2px solid rgba(255,255,255,.25);
+      border-top-color: rgba(255,255,255,.9);
+      animation:spin .8s linear infinite;
       display:none;
-      margin-top: 10px;
-      padding: 14px 14px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.18);
     }
+    .btn.loading .btnSpin{display:inline-block}
+    @keyframes spin{to{transform:rotate(360deg)}}
 
+    .progressWrap{margin-top:16px; display:none}
     .progressTop{
       display:flex;
-      align-items:center;
+      align-items:flex-start;
       justify-content:space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
+      gap:10px;
+      margin-bottom:12px;
+    }
+    .statusLine{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+    .bigStat{
+      font-size:13px;
+      color:rgba(233,238,252,.9);
     }
 
-    .statusLine{
-      display:flex;
-      align-items:center;
-      gap: 10px;
-      flex-wrap: wrap;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .mono{
-      font-family: var(--mono);
-      font-size: 12px;
-      color: rgba(234,240,255,.78);
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.10);
-      padding: 6px 9px;
-      border-radius: 999px;
-    }
-
-    .bar{
-      height: 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.05);
+    .barOuter{
+      width:100%;
+      height:10px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      background:rgba(0,0,0,.18);
       overflow:hidden;
     }
-    .bar > .fill{
-      height: 100%;
-      width: 0%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, rgba(124,58,237,.95), rgba(6,182,212,.90), rgba(34,197,94,.80));
-      transition: width .25s ease;
+    .barInner{
+      width:0%;
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(37,99,235,.95), rgba(34,197,94,.85));
+      transition: width .35s ease;
     }
-
-    .spinner{
-      width: 16px;
-      height: 16px;
-      border-radius: 999px;
-      border: 2px solid rgba(255,255,255,.18);
-      border-top-color: rgba(255,255,255,.85);
-      animation: spin .8s linear infinite;
-    }
-    @keyframes spin{ to{ transform: rotate(360deg); } }
-
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      border-radius: 999px;
-      padding: 7px 10px;
-      font-size: 12px;
-      font-weight: 650;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      color: var(--muted);
-      white-space: nowrap;
-    }
-    .badge.good{ color: rgba(34,197,94,1); border-color: rgba(34,197,94,.28); background: rgba(34,197,94,.10); }
-    .badge.bad{ color: rgba(239,68,68,1); border-color: rgba(239,68,68,.28); background: rgba(239,68,68,.10); }
-    .badge.run{ color: rgba(6,182,212,1); border-color: rgba(6,182,212,.28); background: rgba(6,182,212,.10); }
-    .badge.wait{ color: rgba(245,158,11,1); border-color: rgba(245,158,11,.28); background: rgba(245,158,11,.10); }
 
     .results{
-      display:none;
-      margin-top: 12px;
-      border-top: 1px solid rgba(255,255,255,.06);
-      padding-top: 12px;
-    }
-
-    .resultItem{
-      display:flex;
-      gap: 10px;
-      align-items:flex-start;
-      padding: 10px 10px;
-      border-radius: 14px;
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.08);
-      margin-bottom: 10px;
-    }
-
-    .resultIcon{
-      flex: 0 0 auto;
-      width: 28px;
-      height: 28px;
-      display:grid;
-      place-items:center;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      font-size: 14px;
-      margin-top: 1px;
-    }
-
-    .resultMain{
-      flex: 1 1 auto;
-      min-width: 240px;
-    }
-
-    .resultTitle{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-      font-weight: 700;
-      font-size: 13px;
-      margin-bottom: 4px;
-    }
-
-    .resultSub{
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.35;
-      word-break: break-word;
-    }
-
-    .muted{ color: var(--muted); }
-
-    .vendorList{
+      margin-top:14px;
       display:flex;
       flex-direction:column;
-      gap: 12px;
+      gap:10px;
     }
 
-    .vendorCard{
-      padding: 14px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,.09);
-      background: rgba(0,0,0,.16);
-    }
-
-    .vendorTop{
+    .resultRow{
       display:flex;
-      align-items:center;
+      align-items:flex-start;
       justify-content:space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
+      gap:10px;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid var(--stroke);
+      background:rgba(0,0,0,.12);
     }
-
-    .vendorName{
-      font-weight: 760;
-      letter-spacing: -.01em;
+    .resultLeft{display:flex; gap:12px; align-items:flex-start}
+    .icon{
+      width:22px;height:22px;border-radius:7px;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid var(--stroke);
+      background:rgba(255,255,255,.05);
+      flex:0 0 auto;
+      margin-top:1px;
     }
-
-    .accounts{
-      display:flex;
-      gap: 10px;
-      flex-wrap: wrap;
+    .icon.success{border-color:rgba(34,197,94,.35); background:rgba(34,197,94,.10)}
+    .icon.fail{border-color:rgba(239,68,68,.35); background:rgba(239,68,68,.10)}
+    .resultTitle{
+      font-weight:750;
+      font-size:13.5px;
+      margin:0;
+      line-height:1.2;
+    }
+    .resultMeta{
+      margin:6px 0 0;
+      color:var(--helper);
+      font-size:12.5px;
+      line-height:1.25;
+      word-break:break-word;
     }
 
     .toast{
-      position: fixed;
-      right: 18px;
-      bottom: 18px;
-      z-index: 999;
-      max-width: 420px;
-      padding: 12px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(10,14,30,.92);
-      box-shadow: var(--shadow);
-      display:none;
+      position:fixed;
+      left:18px;
+      bottom:18px;
+      max-width: 540px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      z-index:50;
+      pointer-events:none;
     }
-    .toast.show{ display:block; animation: pop .16s ease; }
-    @keyframes pop{ from{ transform: translateY(6px); opacity: .0 } to{ transform: translateY(0); opacity: 1 } }
-    .toast .tTitle{ font-weight: 750; font-size: 13px; margin-bottom: 2px; }
-    .toast .tBody{ color: var(--muted); font-size: 12px; line-height: 1.35; }
-    .toast.good{ border-color: rgba(34,197,94,.35); }
-    .toast.bad{ border-color: rgba(239,68,68,.35); }
-    .toast.wait{ border-color: rgba(245,158,11,.35); }
+    .toastItem{
+      pointer-events:auto;
+      border-radius:14px;
+      border:1px solid var(--stroke);
+      background:rgba(15,23,42,.92);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      padding:10px 12px;
+      font-size:13px;
+      color:rgba(233,238,252,.93);
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      animation: pop .18s ease;
+    }
+    @keyframes pop{from{transform:translateY(6px); opacity:.0} to{transform:translateY(0); opacity:1}}
+    .toastItem .tBadge{margin-top:2px}
+    .toastItem button{
+      margin-left:auto;
+      background:transparent;
+      border:0;
+      color:rgba(233,238,252,.7);
+      cursor:pointer;
+      font-size:14px;
+    }
+    .toastItem button:hover{color:rgba(233,238,252,.95)}
+
+    /* Modal */
+    .modalOverlay{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.46);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:60;
+      opacity:0;
+      transition:opacity .22s ease;
+    }
+    .modalOverlay.show{display:flex; opacity:1}
+    .modal{
+      width:min(720px, 100%);
+      border-radius:18px;
+      border:1px solid var(--stroke);
+      background:rgba(15,23,42,.92);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      transform: translateY(8px);
+      transition: transform .22s ease;
+    }
+    .modalOverlay.show .modal{transform: translateY(0)}
+    .modalHeader{
+      padding:14px 16px;
+      border-bottom:1px solid var(--stroke);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .modalHeader h3{margin:0; font-size:15px}
+    .modalBody{padding:14px 16px 16px; color:rgba(233,238,252,.9); font-size:14px; line-height:1.5}
+    .modalBody ul{margin:10px 0 0; padding-left:18px; color:rgba(233,238,252,.88)}
+    .modalBody li{margin:6px 0}
+    .closeX{
+      background:transparent;
+      border:1px solid var(--stroke);
+      color:rgba(233,238,252,.85);
+      border-radius:10px;
+      padding:6px 10px;
+      cursor:pointer;
+    }
+    .closeX:hover{border-color:var(--stroke2); background:rgba(255,255,255,.05)}
   </style>
 </head>
+
 <body>
-  <div class="wrap">
+  <div class="shell" id="appRoot">
     <header>
       <div class="title">
         <h1>Invoice Automation</h1>
-        <div class="subtitle">
+        <p>
           Download invoices from vendor portals and email them to your team. Runs are sequential and tracked live.
-        </div>
+          Use “Download all” for batch runs, or trigger a single account on demand.
+        </p>
       </div>
-      <div class="pill" id="envPill">
-        <span class="spinner" style="width:14px;height:14px"></span>
-        <span>Loading…</span>
+
+      <div class="pillRow">
+        <button class="linkBtn" id="howBtn" type="button">How this works</button>
+        <div class="pill"><span class="dot"></span><span id="statusPill">Ready</span></div>
       </div>
     </header>
 
     <div class="grid">
+      <!-- LEFT: RUN -->
       <section class="card">
-        <div class="hd">
-          <div class="left">
+        <div class="cardTop">
+          <div>
             <div class="kicker">Run</div>
-            <div class="name">Batch / Single downloads</div>
+            <div class="heading">Batch / Single downloads</div>
           </div>
-          <span class="badge wait" id="jobBadge"><span class="spinner" id="badgeSpin"></span><span id="jobBadgeText">Idle</span></span>
+          <span class="badge muted" id="jobBadge">Idle</span>
         </div>
 
-        <div class="bd">
-          <div class="split">
-            <div class="field">
-              <label for="emailInput">Send invoices to (optional override for this run)</label>
-              <input id="emailInput" type="email" placeholder="name@company.com" autocomplete="email" />
-              <div class="hint">
-                Leave blank to use your saved default email. Saving settings is local-only for now (auth-ready).
-              </div>
-            </div>
+        <div class="cardInner">
+          <label for="emailInput">Send invoices to (optional override for this run)</label>
+          <input id="emailInput" type="email" placeholder="name@company.com" autocomplete="email" />
+          <div class="help" id="emailHelp">
+            Leave blank to use your saved default email. This field is one-off per run unless you click “Save default email”.
+          </div>
 
-            <div class="row">
-              <button class="btn ghost" id="saveEmailBtn" type="button">Save default email</button>
-              <button class="btn primary" id="downloadAllBtn" type="button">Download all invoices</button>
-            </div>
+          <div class="row">
+            <button class="btn secondary" id="saveEmailBtn" type="button">
+              <span class="btnSpin"></span>
+              Save default email
+            </button>
+            <button class="btn primary" id="downloadAllBtn" type="button">
+              <span class="btnSpin"></span>
+              Download all invoices
+            </button>
           </div>
 
           <div class="progressWrap" id="progressWrap">
             <div class="progressTop">
               <div class="statusLine">
-                <div class="spinner" id="runSpin"></div>
-                <div id="progressText">Starting…</div>
-                <div class="mono" id="jobIdChip" title="Job ID">job: —</div>
+                <span class="badge running" id="runState">Running</span>
+                <span class="bigStat" id="overallStat">0 of 0 completed</span>
+                <span class="badge muted" id="currentStep">—</span>
               </div>
-              <div class="mono" id="percentChip">0%</div>
+              <span class="badge muted" id="jobIdPill">job: —</span>
             </div>
 
-            <div class="bar" aria-label="Progress">
-              <div class="fill" id="progressFill"></div>
+            <div class="barOuter" aria-label="progress">
+              <div class="barInner" id="barInner"></div>
             </div>
+            <div class="help" id="emailNotice" style="margin-top:10px"></div>
 
-            <div class="results" id="resultsWrap">
-              <div class="muted" style="margin: 8px 0 10px; font-size: 12px;">Results</div>
-              <div id="resultsList"></div>
-            </div>
+            <div class="results" id="results"></div>
           </div>
         </div>
       </section>
 
+      <!-- RIGHT: QUICK ACTIONS -->
       <aside class="card">
-        <div class="hd">
-          <div class="left">
+        <div class="cardTop">
+          <div>
             <div class="kicker">Quick actions</div>
-            <div class="name">Download an individual account</div>
+            <div class="heading">Download an individual account</div>
           </div>
-          <button class="btn small" id="refreshVendorsBtn" type="button">Refresh</button>
+          <button class="btn small secondary" id="refreshVendorsBtn" type="button">
+            <span class="btnSpin"></span>
+            Refresh
+          </button>
         </div>
 
-        <div class="bd">
-          <div class="vendorList" id="vendorList">
-            <div class="muted">Loading vendors…</div>
-          </div>
-          <div class="hint" style="margin-top: 10px;">
-            Individual runs use the same email field override (or your saved default if blank).
-          </div>
+        <div class="cardInner" id="vendorWrap">
+          <div class="help">Individual runs use the same email override (or your saved default if blank).</div>
+          <div id="vendorList" style="margin-top:12px; display:flex; flex-direction:column; gap:12px"></div>
         </div>
       </aside>
     </div>
   </div>
 
-  <div class="toast" id="toast">
-    <div class="tTitle" id="toastTitle"></div>
-    <div class="tBody" id="toastBody"></div>
+  <!-- Toasts -->
+  <div class="toast" id="toast"></div>
+
+  <!-- How it works modal -->
+  <div class="modalOverlay" id="modalOverlay" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal">
+      <div class="modalHeader">
+        <h3>How this works</h3>
+        <button class="closeX" id="closeModalBtn" type="button">Close</button>
+      </div>
+      <div class="modalBody" id="modalBody">
+        This tool runs vendor invoice downloads one-by-one in the background, tracks progress live, and sends a single batch email when the run finishes.
+        <ul>
+          <li><b>Batch run</b> downloads every configured account across vendors.</li>
+          <li><b>Single run</b> downloads one specific vendor/account from “Quick actions”.</li>
+          <li><b>Email override</b> applies only to the current run unless you save it as the default.</li>
+          <li><b>Results</b> show success/failure for each account with filenames or error messages.</li>
+        </ul>
+      </div>
+    </div>
   </div>
 
   <script>
-    let activeJobId = null;
-    let pollTimer = null;
-    let lastResultsSignature = "";
-    let cachedUser = null;
+    // =========================
+    // Config / Helpers
+    // =========================
+    const POLL_MS = 2000;
+
+    // Friendly display names
+    const VENDOR_DISPLAY = {
+      rogers: "Rogers",
+      mhydro: "Manitoba Hydro",
+      hwater: "Halifax Water"
+    };
+
+    // GL code mapping (adjust as needed)
+    const GL_CODES = {
+      rogers: {
+        0: "68050-YYT-11-410",
+        1: "68050-YYT-16-412",
+        2: "68050-YYT-10-410"
+      },
+      mhydro: {
+        0: "68100-YWG-10-410"
+      },
+      hwater: {
+        0: "68100-YHZ-11-412",
+        1: "68000-YHZ-10-412"
+      }
+    };
 
     const $ = (id) => document.getElementById(id);
 
-    function setBadge(mode, text) {
-      const badge = $("jobBadge");
-      const spin = $("badgeSpin");
-      const label = $("jobBadgeText");
-      label.textContent = text;
-      badge.classList.remove("good","bad","run","wait");
-      if (mode) badge.classList.add(mode);
-      spin.style.display = (mode === "run" || mode === "wait") ? "inline-block" : "none";
+    function nowTime(){
+      const d = new Date();
+      return d.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"});
     }
 
-    function toast(type, title, body) {
-      const t = $("toast");
-      t.classList.remove("good","bad","wait","show");
-      if (type) t.classList.add(type);
-      $("toastTitle").textContent = title || "";
-      $("toastBody").textContent = body || "";
-      t.classList.add("show");
-      window.clearTimeout(t._timer);
-      t._timer = window.setTimeout(() => t.classList.remove("show"), 3400);
+    function toast(kind, msg){
+      const el = document.createElement("div");
+      el.className = "toastItem";
+      const badge = document.createElement("span");
+      badge.className = "badge tBadge " + (kind === "success" ? "success" : kind === "danger" ? "danger" : "muted");
+      badge.textContent = kind === "success" ? "OK" : kind === "danger" ? "Error" : "Info";
+
+      const text = document.createElement("div");
+      text.style.lineHeight = "1.3";
+      text.textContent = msg;
+
+      const close = document.createElement("button");
+      close.type = "button";
+      close.textContent = "×";
+      close.onclick = () => el.remove();
+
+      el.appendChild(badge);
+      el.appendChild(text);
+      el.appendChild(close);
+
+      $("toast").appendChild(el);
+      setTimeout(() => { if (el.isConnected) el.remove(); }, 5200);
     }
 
-    function normalizeVendor(v) {
-      return (v || "").toString().trim().toLowerCase();
+    function setRunningUI(isRunning){
+      const disable = (btn, yes) => { btn.disabled = yes; };
+      disable($("downloadAllBtn"), isRunning);
+      disable($("saveEmailBtn"), isRunning);
+      disable($("refreshVendorsBtn"), isRunning);
+
+      // Disable individual buttons too
+      document.querySelectorAll("[data-action='single']").forEach(b => b.disabled = isRunning);
+      $("statusPill").textContent = isRunning ? "Busy" : "Ready";
     }
 
-    function formatVendor(v) {
-      const s = normalizeVendor(v);
-      if (!s) return "—";
-      return s.toUpperCase();
+    function setButtonLoading(btn, isLoading){
+      if (!btn) return;
+      if (isLoading){ btn.classList.add("loading"); }
+      else{ btn.classList.remove("loading"); }
     }
 
-    function getEmailOverride() {
-      const raw = $("emailInput").value || "";
-      const email = raw.trim();
-      return email.length ? email : null;
+    function normalizeEmail(value){
+      const v = (value || "").trim();
+      return v.length ? v : null;
     }
 
-    function disableWhileRunning(isRunning) {
-      $("downloadAllBtn").disabled = isRunning;
-      $("saveEmailBtn").disabled = isRunning;
-      $("refreshVendorsBtn").disabled = isRunning;
-      document.querySelectorAll("[data-action='single']").forEach(btn => btn.disabled = isRunning);
+    // Keep client-side timestamps for results (backend doesn't include them yet)
+    const resultSeenAt = new Map(); // key -> time string
+
+    function keyForResult(r){
+      return `${r.vendor}::${r.account}::${r.status}::${r.filename || r.error || ""}`;
     }
 
-    function showProgress(show) {
-      $("progressWrap").style.display = show ? "block" : "none";
-      if (!show) {
-        $("resultsWrap").style.display = "none";
-        $("resultsList").innerHTML = "";
-        $("progressFill").style.width = "0%";
-        $("percentChip").textContent = "0%";
-        $("progressText").textContent = "Idle";
-        $("jobIdChip").textContent = "job: —";
-        lastResultsSignature = "";
-      }
-    }
+    // =========================
+    // State
+    // =========================
+    let currentJobId = null;
+    let pollTimer = null;
+    let activeButton = null;
+    let meCache = null; // /api/me response
 
-    function renderResults(results) {
-      const list = $("resultsList");
-      list.innerHTML = "";
-      if (!Array.isArray(results) || results.length === 0) {
-        list.innerHTML = '<div class="muted" style="font-size:12px;">No results yet.</div>';
-        return;
-      }
-
-      const sorted = [...results].sort((a,b) => {
-        const av = normalizeVendor(a.vendor), bv = normalizeVendor(b.vendor);
-        if (av < bv) return -1;
-        if (av > bv) return 1;
-        return (a.account ?? 0) - (b.account ?? 0);
-      });
-
-      for (const r of sorted) {
-        const ok = r.status === "success";
-        const icon = ok ? "✅" : "❌";
-        const badge = ok ? '<span class="badge good">Success</span>' : '<span class="badge bad">Failed</span>';
-        const title = `${formatVendor(r.vendor)} — Account #${(r.account ?? 0) + 1}`;
-        const sub = ok ? (r.filename ? r.filename : "Downloaded")
-                       : (r.error ? `Error: ${r.error}` : "Error");
-
-        const div = document.createElement("div");
-        div.className = "resultItem";
-        div.innerHTML = `
-          <div class="resultIcon">${icon}</div>
-          <div class="resultMain">
-            <div class="resultTitle">
-              <span>${title}</span>
-              ${badge}
-            </div>
-            <div class="resultSub">${escapeHtml(sub)}</div>
-          </div>
-        `;
-        list.appendChild(div);
-      }
-    }
-
-    function escapeHtml(str) {
-      return String(str || "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-
-    function signatureForResults(results) {
-      try { return JSON.stringify(results || []); } catch { return String(Math.random()); }
-    }
-
-    async function apiGet(path) {
-      const res = await fetch(path, { method: "GET", headers: { "Accept": "application/json" } });
+    // =========================
+    // API
+    // =========================
+    async function apiGet(path){
+      const res = await fetch(path, {method:"GET"});
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((data && (data.error || data.message)) || `HTTP ${res.status}`);
+      if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
       return data;
     }
 
-    async function apiPost(path, bodyObj) {
+    async function apiPost(path, body){
       const res = await fetch(path, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify(bodyObj || {})
+        method:"POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(body || {})
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        const err = new Error((data && (data.error || data.message)) || `HTTP ${res.status}`);
-        err.status = res.status;
-        throw err;
-      }
+      if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
       return data;
     }
 
-    async function startJob(payload) {
-      lastResultsSignature = "";
-      $("resultsWrap").style.display = "none";
-      $("resultsList").innerHTML = "";
-
-      setBadge("wait", "Starting");
-      showProgress(true);
-      $("runSpin").style.display = "inline-block";
-      $("progressText").textContent = "Starting job…";
-      $("progressFill").style.width = "0%";
-      $("percentChip").textContent = "0%";
-      disableWhileRunning(true);
-
-      try {
-        const resp = await apiPost("/api/start-job", payload);
-        activeJobId = resp.job_id;
-        $("jobIdChip").textContent = `job: ${activeJobId}`;
-        toast("wait", "Job started", "Running automation. You can keep this tab open for live updates.");
-        setBadge("run", "Running");
-        beginPolling(activeJobId);
-      } catch (e) {
-        if (e.status === 409) toast("wait", "Already running", e.message || "A job is already running.");
-        else toast("bad", "Could not start job", e.message || "Start failed.");
-        setBadge(null, "Idle");
-        disableWhileRunning(false);
-        showProgress(false);
-        throw e;
-      }
+    // =========================
+    // Render Vendors
+    // =========================
+    function glCodeFor(vendor, account){
+      return (GL_CODES[vendor] && GL_CODES[vendor][account]) ? GL_CODES[vendor][account] : null;
     }
 
-    function beginPolling(jobId) {
-      stopPolling();
-      pollTimer = window.setInterval(() => pollJob(jobId), 2000);
-      pollJob(jobId);
-    }
-
-    function stopPolling() {
-      if (pollTimer) {
-        window.clearInterval(pollTimer);
-        pollTimer = null;
-      }
-    }
-
-    async function pollJob(jobId) {
-      try {
-        const resp = await apiGet(`/api/job-status/${encodeURIComponent(jobId)}`);
-        const job = resp.job;
-
-        const total = job.total_accounts || 0;
-        const done = job.completed_accounts || 0;
-        const pct = (job.percent_complete != null) ? job.percent_complete : (total ? Math.round((done/total)*100) : 0);
-        const label = job.current_label || (job.current_vendor ? `${formatVendor(job.current_vendor)} — Account #${(job.current_account||0)+1}` : "…");
-
-        $("percentChip").textContent = `${pct}%`;
-        $("progressFill").style.width = `${Math.min(100, Math.max(0, pct))}%`;
-
-        let statusText = "";
-        if (job.status === "pending") statusText = "Pending…";
-        if (job.status === "running") statusText = `Running: ${label}`;
-        if (job.status === "completed") statusText = "Completed";
-        if (job.status === "failed") statusText = "Failed";
-
-        $("progressText").textContent = `${done} out of ${total} accounts completed • ${statusText}`;
-
-        const sig = signatureForResults(job.results);
-        if (sig !== lastResultsSignature) {
-          lastResultsSignature = sig;
-          $("resultsWrap").style.display = "block";
-          renderResults(job.results);
-        }
-
-        if (job.status === "running" || job.status === "pending") {
-          setBadge("run", "Running");
-          $("runSpin").style.display = "inline-block";
-          disableWhileRunning(true);
-          return;
-        }
-
-        stopPolling();
-        $("runSpin").style.display = "none";
-        disableWhileRunning(false);
-
-        const results = Array.isArray(job.results) ? job.results : [];
-        const successCount = results.filter(r => r.status === "success").length;
-        const failCount = results.filter(r => r.status === "failed").length;
-
-        if (job.status === "completed") {
-          setBadge("good", "Completed");
-          toast("good", "Run complete", `Success: ${successCount} • Failed: ${failCount}`);
-        } else {
-          setBadge("bad", "Failed");
-          toast("bad", "Run failed", job.error_message || "Job failed.");
-        }
-
-        activeJobId = null;
-
-      } catch (e) {
-        stopPolling();
-        $("runSpin").style.display = "none";
-        setBadge("bad", "Error");
-        disableWhileRunning(false);
-        toast("bad", "Status error", e.message || "Could not fetch job status.");
-      }
-    }
-
-    async function loadMe() {
-      const resp = await apiGet("/api/me");
-      cachedUser = resp.user || null;
-      const email = (cachedUser && cachedUser.settings && cachedUser.settings.default_email_to) ? cachedUser.settings.default_email_to : "";
-      $("emailInput").value = email;
-      $("envPill").innerHTML = '<span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:rgba(34,197,94,.9);box-shadow:0 0 0 4px rgba(34,197,94,.12)"></span><span>Ready • local</span>';
-    }
-
-    async function saveDefaultEmail() {
-      const email = getEmailOverride();
-      const payload = { default_email_to: email || "" };
-      try {
-        const resp = await apiPost("/api/settings", payload);
-        const saved = (resp.settings && resp.settings.default_email_to) ? resp.settings.default_email_to : "";
-        $("emailInput").value = saved;
-        toast("good", "Saved", saved ? `Default email set to ${saved}` : "Default email cleared.");
-      } catch (e) {
-        toast("bad", "Save failed", e.message || "Could not save settings.");
-      }
-    }
-
-    async function loadVendors() {
+    function renderVendorCards(vendors){
       const list = $("vendorList");
-      list.innerHTML = '<div class="muted">Loading vendors…</div>';
-      try {
-        const resp = await apiGet("/api/vendors");
-        const vendors = resp.vendors || [];
-        if (!vendors.length) {
-          list.innerHTML = '<div class="muted">No vendors configured.</div>';
-          return;
-        }
-        list.innerHTML = "";
-        for (const v of vendors) {
-          const card = document.createElement("div");
-          card.className = "vendorCard";
-          const name = v.display_name || formatVendor(v.name);
-          const accounts = Array.isArray(v.accounts) ? v.accounts : [];
-          card.innerHTML = `
-            <div class="vendorTop">
-              <div>
-                <div class="vendorName">${escapeHtml(name)}</div>
-                <div class="hint">Accounts: ${accounts.length}</div>
-              </div>
-            </div>
-            <div class="accounts"></div>
-          `;
-          list.appendChild(card);
+      list.innerHTML = "";
 
-          const accWrap = card.querySelector(".accounts");
-          if (!accounts.length) {
-            accWrap.innerHTML = '<span class="muted" style="font-size:12px;">No accounts.</span>';
-          } else {
-            for (const idx of accounts) {
-              const btn = document.createElement("button");
-              btn.className = "btn small";
-              btn.type = "button";
-              btn.dataset.action = "single";
-              btn.textContent = `Download #${Number(idx) + 1}`;
-              btn.addEventListener("click", () => {
-                const email_to = getEmailOverride();
-                return startJob({
-                  mode: "single",
-                  vendor: v.name,
-                  account: idx,
-                  email_to: email_to
-                });
-              });
-              accWrap.appendChild(btn);
-            }
+      vendors.forEach(v => {
+        const card = document.createElement("div");
+        card.className = "resultRow"; // reuse style
+        card.style.flexDirection = "column";
+        card.style.gap = "10px";
+
+        const top = document.createElement("div");
+        top.style.display = "flex";
+        top.style.justifyContent = "space-between";
+        top.style.alignItems = "flex-start";
+        top.style.gap = "10px";
+
+        const left = document.createElement("div");
+        const name = document.createElement("div");
+        name.className = "resultTitle";
+        name.textContent = VENDOR_DISPLAY[v.name] || v.display_name || v.name;
+        const meta = document.createElement("div");
+        meta.className = "resultMeta";
+        meta.textContent = `Accounts: ${v.accounts.length}`;
+        left.appendChild(name);
+        left.appendChild(meta);
+
+        const right = document.createElement("div");
+        right.className = "badge muted";
+        right.textContent = v.name.toUpperCase();
+        top.appendChild(left);
+        top.appendChild(right);
+
+        const btnRow = document.createElement("div");
+        btnRow.className = "row";
+        btnRow.style.marginTop = "0";
+
+        v.accounts.forEach(accIdx => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "btn small secondary";
+          b.dataset.action = "single";
+          b.dataset.vendor = v.name;
+          b.dataset.account = accIdx;
+
+          const spin = document.createElement("span");
+          spin.className = "btnSpin";
+          b.appendChild(spin);
+
+          const label = document.createElement("span");
+          label.textContent = `Download #${accIdx + 1}`;
+          b.appendChild(label);
+
+          const code = glCodeFor(v.name, accIdx);
+          if (code){
+            const codeEl = document.createElement("span");
+            codeEl.className = "miniCode";
+            codeEl.textContent = code;
+            b.appendChild(codeEl);
           }
-        }
-      } catch (e) {
-        list.innerHTML = `<div class="muted">Failed to load vendors: ${escapeHtml(e.message || "error")}</div>`;
+
+          b.addEventListener("click", () => startSingle(v.name, accIdx, b));
+          btnRow.appendChild(b);
+        });
+
+        card.appendChild(top);
+        card.appendChild(btnRow);
+        list.appendChild(card);
+      });
+    }
+
+    async function loadVendors(){
+      setButtonLoading($("refreshVendorsBtn"), true);
+      try{
+        const data = await apiGet("/api/vendors");
+        renderVendorCards(data.vendors || []);
+      }catch(e){
+        toast("danger", e.message);
+      }finally{
+        setButtonLoading($("refreshVendorsBtn"), false);
       }
     }
 
-    $("downloadAllBtn").addEventListener("click", () => {
-      const email_to = getEmailOverride();
-      return startJob({ mode: "all", email_to: email_to });
-    });
+    // =========================
+    // Job UI
+    // =========================
+    function showProgress(){
+      $("progressWrap").style.display = "block";
+    }
 
-    $("saveEmailBtn").addEventListener("click", saveDefaultEmail);
-    $("refreshVendorsBtn").addEventListener("click", loadVendors);
+    function setJobBadge(status){
+      const badge = $("jobBadge");
+      badge.className = "badge muted";
+      badge.textContent = status || "Idle";
 
-    (async function init() {
-      setBadge(null, "Idle");
-      showProgress(false);
-      try {
-        await loadMe();
-      } catch (e) {
-        $("envPill").innerHTML = '<span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:rgba(239,68,68,.9);box-shadow:0 0 0 4px rgba(239,68,68,.12)"></span><span>Backend not reachable</span>';
-        toast("bad", "Backend not reachable", "Make sure Flask is running on localhost:5000.");
+      if (status === "Running"){
+        badge.className = "badge running";
+      } else if (status === "Completed"){
+        badge.className = "badge success";
+      } else if (status === "Failed"){
+        badge.className = "badge danger";
       }
+    }
+
+    function renderResults(results){
+      const container = $("results");
+      container.innerHTML = "";
+
+      (results || []).forEach(r => {
+        const row = document.createElement("div");
+        row.className = "resultRow";
+
+        const left = document.createElement("div");
+        left.className = "resultLeft";
+
+        const icon = document.createElement("div");
+        icon.className = "icon " + (r.status === "success" ? "success" : "fail");
+        icon.textContent = r.status === "success" ? "✓" : "!";
+        left.appendChild(icon);
+
+        const main = document.createElement("div");
+        const title = document.createElement("p");
+        title.className = "resultTitle";
+        const vendorName = VENDOR_DISPLAY[r.vendor] || r.vendor?.toUpperCase() || "—";
+        title.textContent = `${vendorName} — Account #${(r.account ?? 0) + 1}`;
+        main.appendChild(title);
+
+        const meta = document.createElement("p");
+        meta.className = "resultMeta";
+        const key = keyForResult(r);
+        if (!resultSeenAt.has(key)) resultSeenAt.set(key, nowTime());
+        const ts = resultSeenAt.get(key);
+
+        const code = glCodeFor(r.vendor, r.account);
+        const parts = [];
+        if (code) parts.push(`GL: ${code}`);
+        parts.push(r.status === "success" ? (r.filename || "(file)") : (`Error: ${r.error || "Unknown"}`));
+        parts.push(`Time: ${ts}`);
+
+        meta.textContent = parts.join(" • ");
+        main.appendChild(meta);
+
+        left.appendChild(main);
+
+        const rightBadge = document.createElement("span");
+        rightBadge.className = "badge " + (r.status === "success" ? "success" : "danger");
+        rightBadge.textContent = r.status === "success" ? "Success" : "Failed";
+
+        row.appendChild(left);
+        row.appendChild(rightBadge);
+        container.appendChild(row);
+      });
+    }
+
+    function updateProgress(job){
+      const total = job.total_accounts || 0;
+      const done = job.completed_accounts || 0;
+      const pct = job.percent_complete ?? (total ? Math.round((done/total)*100) : 0);
+
+      $("overallStat").textContent = `${done} out of ${total} accounts completed`;
+      $("barInner").style.width = `${pct}%`;
+
+      $("currentStep").textContent = job.current_label || "—";
+      $("jobIdPill").textContent = `job: ${job.job_id}`;
+
+      renderResults(job.results || []);
+    }
+
+    function stopPolling(){
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = null;
+    }
+
+    async function pollOnce(){
+      if (!currentJobId) return;
+      try{
+        const data = await apiGet(`/api/job-status/${currentJobId}`);
+        const job = data.job;
+
+        if (job.status === "running" || job.status === "pending"){
+          $("runState").className = "badge running";
+          $("runState").textContent = "Running";
+          setJobBadge("Running");
+          setRunningUI(true);
+        }else if (job.status === "completed"){
+          $("runState").className = "badge success";
+          $("runState").textContent = "Completed";
+          setJobBadge("Completed");
+          setRunningUI(false);
+          stopPolling();
+          if (activeButton) setButtonLoading(activeButton, false);
+          activeButton = null;
+
+          // email confirmation message (best-effort)
+          const emailUsed = (job.metadata && job.metadata.email_to) ? job.metadata.email_to : (meCache?.user?.settings?.default_email_to || null);
+          if (emailUsed) toast("success", `Run completed. Email sent to ${emailUsed} (batch).`);
+          else toast("success", "Run completed. Batch email sent (default recipients).");
+        }else if (job.status === "failed"){
+          $("runState").className = "badge danger";
+          $("runState").textContent = "Failed";
+          setJobBadge("Failed");
+          setRunningUI(false);
+          stopPolling();
+          if (activeButton) setButtonLoading(activeButton, false);
+          activeButton = null;
+          toast("danger", job.error_message || "Job failed.");
+        }
+
+        updateProgress(job);
+      }catch(e){
+        // Keep polling, but surface intermittent failures
+        toast("danger", e.message);
+      }
+    }
+
+    function startPolling(job_id){
+      currentJobId = job_id;
+      stopPolling();
+      pollOnce();
+      pollTimer = setInterval(pollOnce, POLL_MS);
+    }
+
+    // =========================
+    // Actions
+    // =========================
+    async function startAll(btn){
+      if (btn) activeButton = btn;
+      if (btn) setButtonLoading(btn, true);
+
+      showProgress();
+      setRunningUI(true);
+      setJobBadge("Running");
+
+      const email_to = normalizeEmail($("emailInput").value);
+      $("emailNotice").textContent = email_to
+        ? `This run will email results to: ${email_to}`
+        : `This run will use your saved default email (or system default recipients).`;
+
+      try{
+        const data = await apiPost("/api/start-job", { mode:"all", email_to });
+        toast("info", "Batch run started.");
+        startPolling(data.job_id);
+      }catch(e){
+        setRunningUI(false);
+        setJobBadge("Failed");
+        if (btn) setButtonLoading(btn, false);
+        activeButton = null;
+        toast("danger", e.message);
+      }
+    }
+
+    async function startSingle(vendor, account, btn){
+      activeButton = btn;
+      setButtonLoading(btn, true);
+
+      showProgress();
+      setRunningUI(true);
+      setJobBadge("Running");
+
+      const email_to = normalizeEmail($("emailInput").value);
+      $("emailNotice").textContent = email_to
+        ? `This run will email results to: ${email_to}`
+        : `This run will use your saved default email (or system default recipients).`;
+
+      try{
+        const data = await apiPost("/api/start-job", { mode:"single", vendor, account, email_to });
+        toast("info", `Started ${VENDOR_DISPLAY[vendor] || vendor} — account #${account + 1}.`);
+        startPolling(data.job_id);
+      }catch(e){
+        setRunningUI(false);
+        setJobBadge("Failed");
+        setButtonLoading(btn, false);
+        activeButton = null;
+        toast("danger", e.message);
+      }
+    }
+
+    async function saveDefaultEmail(){
+      const btn = $("saveEmailBtn");
+      setButtonLoading(btn, true);
+      try{
+        const email = normalizeEmail($("emailInput").value);
+        const payload = { default_email_to: email };
+        const data = await apiPost("/api/settings", payload);
+        meCache = meCache || {user:{settings:{}}};
+        meCache.user.settings = data.settings || {};
+        toast("success", email ? `Saved default email: ${email}` : "Cleared default email.");
+      }catch(e){
+        toast("danger", e.message);
+      }finally{
+        setButtonLoading(btn, false);
+      }
+    }
+
+    // =========================
+    // Modal
+    // =========================
+    function openModal(){
+      const o = $("modalOverlay");
+      o.classList.add("show");
+      o.setAttribute("aria-hidden", "false");
+      // blur background subtly
+      $("appRoot").style.filter = "blur(3px)";
+      $("appRoot").style.transition = "filter .22s ease";
+    }
+    function closeModal(){
+      const o = $("modalOverlay");
+      o.classList.remove("show");
+      o.setAttribute("aria-hidden", "true");
+      $("appRoot").style.filter = "";
+    }
+
+    // =========================
+    // Init
+    // =========================
+    async function init(){
+      try{
+        meCache = await apiGet("/api/me");
+        const saved = meCache?.user?.settings?.default_email_to;
+        if (saved){
+          $("emailHelp").textContent = `Leave blank to use your saved default email (${saved}). This field is one-off per run unless you click “Save default email”.`;
+        }
+      }catch(e){
+        // /api/me is optional, don't block UI
+      }
+
       await loadVendors();
-    })();
+
+      $("downloadAllBtn").addEventListener("click", () => startAll($("downloadAllBtn")));
+      $("refreshVendorsBtn").addEventListener("click", loadVendors);
+      $("saveEmailBtn").addEventListener("click", saveDefaultEmail);
+
+      // Modal wiring
+      $("howBtn").addEventListener("click", openModal);
+      $("closeModalBtn").addEventListener("click", closeModal);
+      $("modalOverlay").addEventListener("click", (e) => { if (e.target === $("modalOverlay")) closeModal(); });
+      window.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+    }
+
+    init();
   </script>
 </body>
 </html>
