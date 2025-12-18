@@ -1,4 +1,3 @@
-<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -6,986 +5,842 @@
   <title>Invoice Automation Dashboard</title>
   <style>
     :root{
-      --bg-0:#050816;
-      --bg-1:#070B1E;
-      --card:#0B122A;
-      --card-2:#0E1733;
-      --border:rgba(255,255,255,.08);
+      --bg0:#070A12;
+      --bg1:#0B1020;
+      --card:rgba(255,255,255,.06);
+      --card2:rgba(255,255,255,.08);
+      --stroke:rgba(255,255,255,.10);
       --text:#EAF0FF;
       --muted:rgba(234,240,255,.72);
-
-      --accent:#7C3AED;     /* violet */
-      --accent-2:#06B6D4;   /* cyan */
-      --good:#22C55E;       /* green */
-      --bad:#EF4444;        /* red */
-      --warn:#F59E0B;       /* amber */
-      --shadow: 0 20px 60px rgba(0,0,0,.55);
+      --muted2:rgba(234,240,255,.55);
+      --good:#22C55E;
+      --bad:#EF4444;
+      --warn:#F59E0B;
+      --accent:#7C3AED;
+      --accent2:#06B6D4;
+      --shadow: 0 16px 45px rgba(0,0,0,.45);
       --radius: 18px;
+      --radius2: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
 
     *{box-sizing:border-box}
-    html,body{height:100%}
     body{
       margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      font-family:var(--sans);
       color:var(--text);
       background:
-        radial-gradient(1200px 800px at 10% 0%, rgba(124,58,237,.25) 0%, rgba(124,58,237,0) 60%),
-        radial-gradient(1000px 700px at 90% 10%, rgba(6,182,212,.20) 0%, rgba(6,182,212,0) 55%),
-        radial-gradient(900px 600px at 50% 110%, rgba(34,197,94,.18) 0%, rgba(34,197,94,0) 55%),
-        linear-gradient(180deg, var(--bg-0), var(--bg-1));
-      overflow-x:hidden;
+        radial-gradient(1200px 600px at 20% 0%, rgba(124,58,237,.35), transparent 60%),
+        radial-gradient(900px 500px at 80% 10%, rgba(6,182,212,.25), transparent 55%),
+        radial-gradient(900px 700px at 50% 100%, rgba(34,197,94,.10), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      min-height:100vh;
     }
 
-    a{color:inherit}
-    .container{
+    .wrap{
       max-width: 1100px;
       margin: 0 auto;
-      padding: 28px 18px 48px;
+      padding: 28px 18px 56px;
     }
 
-    .topbar{
+    header{
       display:flex;
-      align-items:center;
+      align-items:flex-start;
       justify-content:space-between;
       gap:16px;
-      margin-bottom: 18px;
+      padding: 10px 6px 18px;
     }
 
-    .brand{
+    .title{
       display:flex;
-      align-items:center;
-      gap:12px;
-      min-width: 260px;
+      flex-direction:column;
+      gap:6px;
     }
 
-    .logo{
-      width:42px;height:42px;
-      border-radius: 14px;
-      position:relative;
-      background:
-        radial-gradient(20px 20px at 30% 25%, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 60%),
-        linear-gradient(135deg, rgba(124,58,237,.95), rgba(6,182,212,.9));
-      box-shadow: 0 14px 30px rgba(124,58,237,.25), 0 10px 26px rgba(6,182,212,.18);
-      overflow:hidden;
-    }
-
-    .logo:after{
-      content:"";
-      position:absolute; inset:-1px;
-      background:
-        radial-gradient(28px 28px at 70% 85%, rgba(34,197,94,.20) 0%, rgba(34,197,94,0) 60%);
-      mix-blend-mode: screen;
-      pointer-events:none;
-    }
-
-    .brand h1{
-      font-size: 16px;
-      line-height: 1.1;
+    h1{
       margin:0;
-      font-weight: 650;
-      letter-spacing: .2px;
+      font-weight: 760;
+      letter-spacing: -0.02em;
+      font-size: clamp(22px, 3vw, 30px);
+      line-height: 1.05;
     }
-    .brand p{
-      margin:4px 0 0 0;
-      font-size: 12.5px;
-      color: var(--muted);
+
+    .subtitle{
+      color:var(--muted);
+      font-size: 14px;
+      line-height: 1.35;
+      max-width: 70ch;
     }
 
     .pill{
-      display:flex;
+      display:inline-flex;
       align-items:center;
       gap:8px;
-      padding: 10px 12px;
+      padding: 8px 10px;
       border-radius: 999px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,.04);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 10px 28px rgba(0,0,0,.22);
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--stroke);
       color: var(--muted);
-      font-size: 12.5px;
+      font-size: 12px;
       white-space: nowrap;
     }
-    .dot{
-      width:8px;height:8px;border-radius:99px;
-      background: rgba(255,255,255,.55);
-      box-shadow: 0 0 0 4px rgba(255,255,255,.08);
-    }
-    .dot.good{background: var(--good); box-shadow: 0 0 0 4px rgba(34,197,94,.18);}
-    .dot.warn{background: var(--warn); box-shadow: 0 0 0 4px rgba(245,158,11,.18);}
-    .dot.bad{background: var(--bad); box-shadow: 0 0 0 4px rgba(239,68,68,.18);}
 
     .grid{
       display:grid;
       grid-template-columns: 1.1fr .9fr;
-      gap: 18px;
+      gap: 16px;
+      align-items:start;
     }
-    @media (max-width: 920px){
+
+    @media (max-width: 980px){
       .grid{grid-template-columns: 1fr}
-      .brand{min-width:auto}
     }
 
     .card{
-      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+      border: 1px solid var(--stroke);
       border-radius: var(--radius);
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
       box-shadow: var(--shadow);
       overflow:hidden;
     }
-    .card-inner{ padding: 18px; }
-    .card-header{
-      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
-      padding: 18px;
-      border-bottom: 1px solid rgba(255,255,255,.06);
-      background:
-        radial-gradient(900px 240px at 20% -20%, rgba(124,58,237,.18) 0%, rgba(124,58,237,0) 50%),
-        radial-gradient(900px 240px at 90% -40%, rgba(6,182,212,.14) 0%, rgba(6,182,212,0) 55%),
-        rgba(0,0,0,.10);
-    }
-    .card-header h2{
-      margin:0;
-      font-size: 14px;
-      font-weight: 650;
-      letter-spacing: .2px;
-    }
-    .card-header p{
-      margin:6px 0 0 0;
-      color: var(--muted);
-      font-size: 12.5px;
-      line-height: 1.35;
-      max-width: 68ch;
-    }
 
-    .actions{
+    .card .hd{
+      padding: 16px 16px 10px;
       display:flex;
-      gap:10px;
-      flex-wrap:wrap;
       align-items:center;
-      justify-content:flex-end;
+      justify-content:space-between;
+      gap:12px;
     }
 
-    .btn{
-      appearance:none;
-      border:none;
-      cursor:pointer;
-      border-radius: 14px;
-      padding: 12px 14px;
-      font-weight: 650;
-      letter-spacing: .2px;
-      color: var(--text);
-      background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(6,182,212,.92));
-      box-shadow: 0 16px 30px rgba(124,58,237,.22), 0 14px 30px rgba(6,182,212,.14);
-      transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      user-select:none;
-    }
-    .btn:hover{ transform: translateY(-1px); filter: brightness(1.03); }
-    .btn:active{ transform: translateY(0px); filter: brightness(.98); }
-    .btn:disabled{
-      cursor:not-allowed;
-      opacity:.55;
-      filter:saturate(.8);
-      box-shadow:none;
-      transform:none;
+    .card .hd .left{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
     }
 
-    .btn.secondary{
-      background: rgba(255,255,255,.05);
-      border: 1px solid rgba(255,255,255,.10);
-      box-shadow:none;
-      font-weight: 600;
-      color: var(--muted);
+    .card .hd .kicker{
+      color: var(--muted2);
+      font-size: 12px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
     }
-    .btn.secondary:hover{ filter: brightness(1.05); transform: translateY(-1px); }
-    .btn.secondary:disabled{ opacity:.45; }
 
-    .icon{
-      width: 18px; height: 18px; display:inline-block;
+    .card .hd .name{
+      font-size: 16px;
+      font-weight: 720;
+    }
+
+    .card .bd{
+      padding: 14px 16px 16px;
+      border-top: 1px solid rgba(255,255,255,.06);
     }
 
     .row{
       display:flex;
       align-items:center;
-      justify-content:space-between;
-      gap: 12px;
-      flex-wrap:wrap;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
-    .metric{
+    .field{
       display:flex;
       flex-direction:column;
       gap:6px;
-      min-width: 240px;
+      width: 100%;
+      max-width: 520px;
     }
-    .metric .label{
+
+    label{
       font-size: 12px;
-      color: var(--muted);
-      letter-spacing:.18px;
+      color: var(--muted2);
     }
-    .metric .value{
-      font-size: 16px;
+
+    input[type="email"]{
+      width:100%;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      outline: none;
+      background: rgba(0,0,0,.22);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    input[type="email"]::placeholder{ color: rgba(234,240,255,.35); }
+
+    .btn{
+      appearance:none;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 11px 12px;
+      border-radius: 12px;
+      font-weight: 650;
+      font-size: 14px;
+      cursor:pointer;
+      transition: transform .08s ease, background .2s ease, border-color .2s ease, opacity .2s ease;
+      display:inline-flex;
+      align-items:center;
+      gap: 10px;
+      user-select:none;
+    }
+
+    .btn:hover{ background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.20); }
+    .btn:active{ transform: translateY(1px) scale(.99); }
+    .btn[disabled]{ opacity:.55; cursor:not-allowed; }
+
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(124,58,237,.90), rgba(6,182,212,.75));
+      border-color: rgba(255,255,255,.20);
+      box-shadow: 0 10px 28px rgba(124,58,237,.22);
+    }
+    .btn.primary:hover{ filter: brightness(1.05); }
+    .btn.ghost{
+      background: transparent;
+      border-color: rgba(255,255,255,.14);
+    }
+
+    .btn.small{
+      padding: 9px 10px;
+      border-radius: 11px;
+      font-size: 13px;
       font-weight: 650;
     }
-    .sub{
+
+    .hint{
+      color: var(--muted2);
       font-size: 12px;
-      color: var(--muted);
-      line-height:1.35;
+      line-height: 1.35;
     }
 
-    .progress-wrap{
-      margin-top: 14px;
+    .split{
       display:flex;
-      flex-direction:column;
-      gap: 10px;
-    }
-    .progressbar{
-      height: 12px;
-      border-radius: 999px;
-      overflow:hidden;
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.08);
-      position:relative;
-    }
-    .progressbar > .fill{
-      height: 100%;
-      width: 0%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, rgba(124,58,237,.95), rgba(6,182,212,.92), rgba(34,197,94,.90));
-      transition: width .35s ease;
-      position:relative;
-    }
-    .progressbar > .fill:after{
-      content:"";
-      position:absolute; inset:0;
-      background:
-        linear-gradient(90deg, rgba(255,255,255,.25), rgba(255,255,255,0), rgba(255,255,255,.22));
-      opacity:.35;
-      transform: translateX(-60%);
-      animation: shimmer 1.7s ease-in-out infinite;
-    }
-    @keyframes shimmer{
-      0%{transform: translateX(-70%); opacity:.0}
-      35%{opacity:.32}
-      100%{transform: translateX(120%); opacity:0}
+      gap:12px;
+      align-items:flex-end;
+      justify-content:space-between;
+      flex-wrap: wrap;
     }
 
-    .statusline{
+    .progressWrap{
+      display:none;
+      margin-top: 10px;
+      padding: 14px 14px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+    }
+
+    .progressTop{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap: 12px;
-      flex-wrap:wrap;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
     }
+
+    .statusLine{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .mono{
+      font-family: var(--mono);
+      font-size: 12px;
+      color: rgba(234,240,255,.78);
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      padding: 6px 9px;
+      border-radius: 999px;
+    }
+
+    .bar{
+      height: 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      overflow:hidden;
+    }
+    .bar > .fill{
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(124,58,237,.95), rgba(6,182,212,.90), rgba(34,197,94,.80));
+      transition: width .25s ease;
+    }
+
+    .spinner{
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      border: 2px solid rgba(255,255,255,.18);
+      border-top-color: rgba(255,255,255,.85);
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin{ to{ transform: rotate(360deg); } }
 
     .badge{
       display:inline-flex;
       align-items:center;
-      gap: 8px;
-      padding: 8px 10px;
+      gap:8px;
       border-radius: 999px;
+      padding: 7px 10px;
       font-size: 12px;
       font-weight: 650;
-      letter-spacing: .15px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
       color: var(--muted);
+      white-space: nowrap;
     }
-    .badge.good{ border-color: rgba(34,197,94,.28); background: rgba(34,197,94,.10); color: rgba(207,255,226,.95); }
-    .badge.bad{ border-color: rgba(239,68,68,.30); background: rgba(239,68,68,.10); color: rgba(255,215,215,.95); }
-    .badge.warn{ border-color: rgba(245,158,11,.30); background: rgba(245,158,11,.10); color: rgba(255,239,208,.95); }
-
-    .spinner{
-      width: 16px; height: 16px;
-      border-radius: 999px;
-      border: 2px solid rgba(255,255,255,.22);
-      border-top-color: rgba(255,255,255,.85);
-      animation: spin .8s linear infinite;
-    }
-    @keyframes spin{to{transform:rotate(360deg)}}
-
-    .hidden{ display:none !important; }
+    .badge.good{ color: rgba(34,197,94,1); border-color: rgba(34,197,94,.28); background: rgba(34,197,94,.10); }
+    .badge.bad{ color: rgba(239,68,68,1); border-color: rgba(239,68,68,.28); background: rgba(239,68,68,.10); }
+    .badge.run{ color: rgba(6,182,212,1); border-color: rgba(6,182,212,.28); background: rgba(6,182,212,.10); }
+    .badge.wait{ color: rgba(245,158,11,1); border-color: rgba(245,158,11,.28); background: rgba(245,158,11,.10); }
 
     .results{
-      display:flex;
-      flex-direction:column;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .result-item{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap: 10px;
-      padding: 12px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.08);
-      background: rgba(0,0,0,.12);
-      transition: transform .12s ease, border-color .12s ease, background .12s ease;
-    }
-    .result-item:hover{
-      transform: translateY(-1px);
-      border-color: rgba(255,255,255,.14);
-      background: rgba(0,0,0,.16);
-    }
-    .result-left{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      min-width: 0;
-    }
-    .result-title{
-      display:flex;
-      align-items:center;
-      gap: 10px;
-      font-weight: 650;
-      font-size: 13px;
-      letter-spacing:.1px;
-      min-width: 0;
-    }
-    .result-title .text{
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      max-width: 620px;
-    }
-    @media (max-width: 920px){
-      .result-title .text{max-width: 62vw;}
-    }
-    .result-meta{
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.3;
+      display:none;
+      margin-top: 12px;
+      border-top: 1px solid rgba(255,255,255,.06);
+      padding-top: 12px;
     }
 
-    .result-icon{
-      width: 22px;
-      height: 22px;
+    .resultItem{
+      display:flex;
+      gap: 10px;
+      align-items:flex-start;
+      padding: 10px 10px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      margin-bottom: 10px;
+    }
+
+    .resultIcon{
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
       display:grid;
       place-items:center;
       border-radius: 10px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
-      flex: 0 0 auto;
-    }
-    .result-icon.good{ border-color: rgba(34,197,94,.28); background: rgba(34,197,94,.10); }
-    .result-icon.bad{ border-color: rgba(239,68,68,.30); background: rgba(239,68,68,.10); }
-
-    .small-btn{
-      appearance:none;
       border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.04);
-      color: var(--muted);
-      border-radius: 12px;
-      padding: 9px 10px;
-      cursor:pointer;
-      font-weight: 650;
-      font-size: 12px;
-      transition: transform .12s ease, filter .12s ease, border-color .12s ease;
-      user-select:none;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
+      background: rgba(255,255,255,.06);
+      font-size: 14px;
+      margin-top: 1px;
     }
-    .small-btn:hover{ transform: translateY(-1px); filter: brightness(1.04); border-color: rgba(255,255,255,.18); }
-    .small-btn:active{ transform: translateY(0px); filter: brightness(.98); }
-    .small-btn:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
+
+    .resultMain{
+      flex: 1 1 auto;
+      min-width: 240px;
+    }
+
+    .resultTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .resultSub{
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .muted{ color: var(--muted); }
+
+    .vendorList{
+      display:flex;
+      flex-direction:column;
+      gap: 12px;
+    }
+
+    .vendorCard{
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.09);
+      background: rgba(0,0,0,.16);
+    }
+
+    .vendorTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .vendorName{
+      font-weight: 760;
+      letter-spacing: -.01em;
+    }
+
+    .accounts{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
 
     .toast{
       position: fixed;
-      right: 16px;
-      bottom: 16px;
-      max-width: 520px;
+      right: 18px;
+      bottom: 18px;
+      z-index: 999;
+      max-width: 420px;
+      padding: 12px 12px;
+      border-radius: 14px;
       border: 1px solid rgba(255,255,255,.12);
-      background: rgba(10,15,34,.72);
-      backdrop-filter: blur(12px);
-      border-radius: 16px;
-      padding: 12px 14px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.55);
-      display:flex;
-      align-items:flex-start;
-      gap: 10px;
-      transform: translateY(14px);
-      opacity:0;
-      pointer-events:none;
-      transition: opacity .2s ease, transform .2s ease;
+      background: rgba(10,14,30,.92);
+      box-shadow: var(--shadow);
+      display:none;
     }
-    .toast.show{
-      opacity:1;
-      transform: translateY(0px);
-      pointer-events:auto;
-    }
-    .toast .t-title{
-      font-weight: 650;
-      font-size: 13px;
-      margin:0;
-    }
-    .toast .t-body{
-      margin:4px 0 0 0;
-      font-size: 12px;
-      color: var(--muted);
-      line-height:1.35;
-    }
-
-    .kbd{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
-      font-size: 11px;
-      border: 1px solid rgba(255,255,255,.12);
-      border-bottom-color: rgba(255,255,255,.18);
-      background: rgba(255,255,255,.04);
-      padding: 2px 6px;
-      border-radius: 8px;
-      color: rgba(234,240,255,.78);
-    }
-
-    .footer-note{
-      margin-top: 14px;
-      color: rgba(234,240,255,.55);
-      font-size: 12px;
-      line-height:1.35;
-    }
-
-    /* Smooth section reveal */
-    .reveal{
-      animation: reveal .18s ease-out both;
-    }
-    @keyframes reveal{
-      from{opacity:0; transform: translateY(6px);}
-      to{opacity:1; transform: translateY(0px);}
-    }
+    .toast.show{ display:block; animation: pop .16s ease; }
+    @keyframes pop{ from{ transform: translateY(6px); opacity: .0 } to{ transform: translateY(0); opacity: 1 } }
+    .toast .tTitle{ font-weight: 750; font-size: 13px; margin-bottom: 2px; }
+    .toast .tBody{ color: var(--muted); font-size: 12px; line-height: 1.35; }
+    .toast.good{ border-color: rgba(34,197,94,.35); }
+    .toast.bad{ border-color: rgba(239,68,68,.35); }
+    .toast.wait{ border-color: rgba(245,158,11,.35); }
   </style>
 </head>
-
 <body>
-  <div class="container">
-    <div class="topbar">
-      <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
-        <div>
-          <h1>Invoice Automation</h1>
-          <p>Internal dashboard for multi-vendor invoice downloads</p>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1>Invoice Automation</h1>
+        <div class="subtitle">
+          Download invoices from vendor portals and email them to your team. Runs are sequential and tracked live.
         </div>
       </div>
-
-      <div class="pill" title="Backend connectivity">
-        <span id="healthDot" class="dot"></span>
-        <span id="healthText">Ready</span>
-        <span class="kbd">/api</span>
+      <div class="pill" id="envPill">
+        <span class="spinner" style="width:14px;height:14px"></span>
+        <span>Loading…</span>
       </div>
-    </div>
+    </header>
 
     <div class="grid">
-      <!-- Left: Control + Progress -->
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <h2>Run automation</h2>
-            <p>Trigger a headless batch run across all configured vendor accounts. Progress updates every 2 seconds.</p>
+      <section class="card">
+        <div class="hd">
+          <div class="left">
+            <div class="kicker">Run</div>
+            <div class="name">Batch / Single downloads</div>
           </div>
-
-          <div class="actions">
-            <button id="startBtn" class="btn">
-              <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M8.5 5.5v13l11-6.5-11-6.5z" fill="rgba(255,255,255,.92)"/>
-              </svg>
-              Download All Invoices
-            </button>
-            <button id="resetBtn" class="btn secondary" title="Clear UI (does not cancel a running job)">
-              Reset
-            </button>
-          </div>
+          <span class="badge wait" id="jobBadge"><span class="spinner" id="badgeSpin"></span><span id="jobBadgeText">Idle</span></span>
         </div>
 
-        <div class="card-inner">
-          <div id="progressSection" class="hidden">
+        <div class="bd">
+          <div class="split">
+            <div class="field">
+              <label for="emailInput">Send invoices to (optional override for this run)</label>
+              <input id="emailInput" type="email" placeholder="name@company.com" autocomplete="email" />
+              <div class="hint">
+                Leave blank to use your saved default email. Saving settings is local-only for now (auth-ready).
+              </div>
+            </div>
+
             <div class="row">
-              <div class="metric">
-                <div class="label">Overall progress</div>
-                <div id="progressText" class="value">0 out of 0 accounts completed</div>
-                <div id="currentStep" class="sub">Starting…</div>
-              </div>
-
-              <div class="badge warn" id="statusBadge">
-                <span class="spinner" id="spinner" aria-hidden="true"></span>
-                <span id="statusLabel">Running</span>
-              </div>
-            </div>
-
-            <div class="progress-wrap">
-              <div class="statusline">
-                <div class="sub"><span id="percentLabel">0%</span> complete</div>
-                <div class="sub">Polling every 2s</div>
-              </div>
-              <div class="progressbar" aria-label="Progress bar">
-                <div id="progressFill" class="fill"></div>
-              </div>
-            </div>
-
-            <div class="footer-note">
-              Tip: If a vendor portal is slow, the status may pause on a step for a bit. The job is still running as long as the spinner is active.
+              <button class="btn ghost" id="saveEmailBtn" type="button">Save default email</button>
+              <button class="btn primary" id="downloadAllBtn" type="button">Download all invoices</button>
             </div>
           </div>
 
-          <div id="idleSection" class="reveal">
-            <div class="row">
-              <div class="metric">
-                <div class="label">Status</div>
-                <div class="value">Idle</div>
-                <div class="sub">Click <b>Download All Invoices</b> to start. Results will appear automatically.</div>
+          <div class="progressWrap" id="progressWrap">
+            <div class="progressTop">
+              <div class="statusLine">
+                <div class="spinner" id="runSpin"></div>
+                <div id="progressText">Starting…</div>
+                <div class="mono" id="jobIdChip" title="Job ID">job: —</div>
               </div>
-              <div class="badge" id="idleBadge">
-                <span class="dot"></span>
-                <span>Waiting</span>
-              </div>
+              <div class="mono" id="percentChip">0%</div>
+            </div>
+
+            <div class="bar" aria-label="Progress">
+              <div class="fill" id="progressFill"></div>
+            </div>
+
+            <div class="results" id="resultsWrap">
+              <div class="muted" style="margin: 8px 0 10px; font-size: 12px;">Results</div>
+              <div id="resultsList"></div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Right: Results -->
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <h2>Results</h2>
-            <p>Each vendor account will show a success or failure record once completed.</p>
+      <aside class="card">
+        <div class="hd">
+          <div class="left">
+            <div class="kicker">Quick actions</div>
+            <div class="name">Download an individual account</div>
           </div>
-          <div class="actions">
-            <button id="copyBtn" class="small-btn" disabled title="Copy results to clipboard">
-              <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M9 9h10v10H9V9Z" stroke="rgba(234,240,255,.85)" stroke-width="1.6"/>
-                <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" stroke="rgba(234,240,255,.55)" stroke-width="1.6"/>
-              </svg>
-              Copy
-            </button>
-            <button id="clearBtn" class="small-btn" title="Clear results list">
-              <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M6 7h12" stroke="rgba(234,240,255,.75)" stroke-width="1.6" stroke-linecap="round"/>
-                <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="rgba(234,240,255,.75)" stroke-width="1.6" stroke-linecap="round"/>
-                <path d="M8 7l1 14h6l1-14" stroke="rgba(234,240,255,.55)" stroke-width="1.6" stroke-linecap="round"/>
-              </svg>
-              Clear
-            </button>
-          </div>
+          <button class="btn small" id="refreshVendorsBtn" type="button">Refresh</button>
         </div>
 
-        <div class="card-inner">
-          <div id="resultsEmpty" class="sub reveal">
-            No results yet. Start a run to see completed downloads here.
+        <div class="bd">
+          <div class="vendorList" id="vendorList">
+            <div class="muted">Loading vendors…</div>
           </div>
-          <div id="resultsList" class="results"></div>
+          <div class="hint" style="margin-top: 10px;">
+            Individual runs use the same email field override (or your saved default if blank).
+          </div>
         </div>
-      </div>
+      </aside>
     </div>
   </div>
 
-  <div id="toast" class="toast" role="status" aria-live="polite">
-    <div id="toastIcon" class="result-icon" aria-hidden="true">•</div>
-    <div>
-      <p id="toastTitle" class="t-title">Notice</p>
-      <p id="toastBody" class="t-body">…</p>
-    </div>
+  <div class="toast" id="toast">
+    <div class="tTitle" id="toastTitle"></div>
+    <div class="tBody" id="toastBody"></div>
   </div>
 
   <script>
-    // --- Configuration ---
-    const START_ENDPOINT = "/api/start-job";
-    const STATUS_ENDPOINT_PREFIX = "/api/job-status/";
-    const POLL_MS = 2000;
-
-    // --- State ---
-    let currentJobId = null;
+    let activeJobId = null;
     let pollTimer = null;
-    let lastRenderedResultsKey = ""; // used to avoid re-render thrash
-    let lastStatus = null;
+    let lastResultsSignature = "";
+    let cachedUser = null;
 
-    // --- Elements ---
-    const startBtn = document.getElementById("startBtn");
-    const resetBtn = document.getElementById("resetBtn");
-    const idleSection = document.getElementById("idleSection");
-    const progressSection = document.getElementById("progressSection");
+    const $ = (id) => document.getElementById(id);
 
-    const progressText = document.getElementById("progressText");
-    const currentStep = document.getElementById("currentStep");
-    const progressFill = document.getElementById("progressFill");
-    const percentLabel = document.getElementById("percentLabel");
-
-    const statusBadge = document.getElementById("statusBadge");
-    const statusLabel = document.getElementById("statusLabel");
-    const spinner = document.getElementById("spinner");
-
-    const resultsList = document.getElementById("resultsList");
-    const resultsEmpty = document.getElementById("resultsEmpty");
-
-    const copyBtn = document.getElementById("copyBtn");
-    const clearBtn = document.getElementById("clearBtn");
-
-    const healthDot = document.getElementById("healthDot");
-    const healthText = document.getElementById("healthText");
-
-    const toast = document.getElementById("toast");
-    const toastIcon = document.getElementById("toastIcon");
-    const toastTitle = document.getElementById("toastTitle");
-    const toastBody = document.getElementById("toastBody");
-
-    // --- Helpers ---
-    function titleCase(s){
-      if(!s) return "";
-      return String(s).replace(/[_-]+/g," ").replace(/\b\w/g, c => c.toUpperCase());
+    function setBadge(mode, text) {
+      const badge = $("jobBadge");
+      const spin = $("badgeSpin");
+      const label = $("jobBadgeText");
+      label.textContent = text;
+      badge.classList.remove("good","bad","run","wait");
+      if (mode) badge.classList.add(mode);
+      spin.style.display = (mode === "run" || mode === "wait") ? "inline-block" : "none";
     }
 
-    function fmtVendor(v){
-      if(!v) return "";
-      // keep common names friendly
-      const map = { "mhydro":"Manitoba Hydro", "hwater":"Halifax Water", "rogers":"Rogers" };
-      return map[String(v).toLowerCase()] || titleCase(v);
+    function toast(type, title, body) {
+      const t = $("toast");
+      t.classList.remove("good","bad","wait","show");
+      if (type) t.classList.add(type);
+      $("toastTitle").textContent = title || "";
+      $("toastBody").textContent = body || "";
+      t.classList.add("show");
+      window.clearTimeout(t._timer);
+      t._timer = window.setTimeout(() => t.classList.remove("show"), 3400);
     }
 
-    function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
-
-    function percent(completed, total){
-      if(!total || total <= 0) return 0;
-      return clamp(Math.round((completed / total) * 100), 0, 100);
+    function normalizeVendor(v) {
+      return (v || "").toString().trim().toLowerCase();
     }
 
-    function setBadge(kind, label, spinning){
-      statusBadge.classList.remove("good","bad","warn");
-      statusBadge.classList.add(kind);
-      statusLabel.textContent = label;
+    function formatVendor(v) {
+      const s = normalizeVendor(v);
+      if (!s) return "—";
+      return s.toUpperCase();
+    }
 
-      if(spinning){
-        spinner.classList.remove("hidden");
-      } else {
-        spinner.classList.add("hidden");
+    function getEmailOverride() {
+      const raw = $("emailInput").value || "";
+      const email = raw.trim();
+      return email.length ? email : null;
+    }
+
+    function disableWhileRunning(isRunning) {
+      $("downloadAllBtn").disabled = isRunning;
+      $("saveEmailBtn").disabled = isRunning;
+      $("refreshVendorsBtn").disabled = isRunning;
+      document.querySelectorAll("[data-action='single']").forEach(btn => btn.disabled = isRunning);
+    }
+
+    function showProgress(show) {
+      $("progressWrap").style.display = show ? "block" : "none";
+      if (!show) {
+        $("resultsWrap").style.display = "none";
+        $("resultsList").innerHTML = "";
+        $("progressFill").style.width = "0%";
+        $("percentChip").textContent = "0%";
+        $("progressText").textContent = "Idle";
+        $("jobIdChip").textContent = "job: —";
+        lastResultsSignature = "";
       }
     }
 
-    function showToast(kind, title, body){
-      toastIcon.classList.remove("good","bad");
-      toastIcon.classList.add(kind === "good" ? "good" : (kind === "bad" ? "bad" : ""));
-      toastIcon.textContent = kind === "good" ? "✓" : (kind === "bad" ? "!" : "•");
-      toastTitle.textContent = title;
-      toastBody.textContent = body;
-
-      toast.classList.add("show");
-      clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => toast.classList.remove("show"), 3200);
-    }
-
-    function setHealth(kind, text){
-      healthDot.classList.remove("good","warn","bad");
-      healthText.textContent = text;
-      if(kind) healthDot.classList.add(kind);
-    }
-
-    function showProgressUI(){
-      idleSection.classList.add("hidden");
-      progressSection.classList.remove("hidden");
-      progressSection.classList.add("reveal");
-    }
-
-    function showIdleUI(){
-      progressSection.classList.add("hidden");
-      idleSection.classList.remove("hidden");
-      idleSection.classList.add("reveal");
-    }
-
-    function clearResults(){
-      resultsList.innerHTML = "";
-      resultsEmpty.classList.remove("hidden");
-      copyBtn.disabled = true;
-      lastRenderedResultsKey = "";
-    }
-
-    function resultsToText(job){
-      const lines = [];
-      const results = (job && job.results) ? job.results : [];
-      for(const r of results){
-        const vendor = fmtVendor(r.vendor);
-        const acct = (typeof r.account === "number") ? (r.account + 1) : r.account;
-        if(r.status === "success"){
-          lines.push(`✅ ${vendor} Account ${acct} - ${r.filename || ""}`.trim());
-        } else {
-          lines.push(`❌ ${vendor} Account ${acct} - Error: ${r.error || "Unknown error"}`);
-        }
-      }
-      return lines.join("\n");
-    }
-
-    function renderResults(job){
-      const results = job.results || [];
-      const key = JSON.stringify(results.map(r => [r.vendor, r.account, r.status, r.filename || "", r.error || ""]));
-
-      if(key === lastRenderedResultsKey) return;
-      lastRenderedResultsKey = key;
-
-      if(results.length === 0){
-        resultsEmpty.classList.remove("hidden");
-        copyBtn.disabled = true;
+    function renderResults(results) {
+      const list = $("resultsList");
+      list.innerHTML = "";
+      if (!Array.isArray(results) || results.length === 0) {
+        list.innerHTML = '<div class="muted" style="font-size:12px;">No results yet.</div>';
         return;
       }
 
-      resultsEmpty.classList.add("hidden");
-      copyBtn.disabled = false;
+      const sorted = [...results].sort((a,b) => {
+        const av = normalizeVendor(a.vendor), bv = normalizeVendor(b.vendor);
+        if (av < bv) return -1;
+        if (av > bv) return 1;
+        return (a.account ?? 0) - (b.account ?? 0);
+      });
 
-      // re-render list (simple + reliable)
-      resultsList.innerHTML = "";
+      for (const r of sorted) {
+        const ok = r.status === "success";
+        const icon = ok ? "✅" : "❌";
+        const badge = ok ? '<span class="badge good">Success</span>' : '<span class="badge bad">Failed</span>';
+        const title = `${formatVendor(r.vendor)} — Account #${(r.account ?? 0) + 1}`;
+        const sub = ok ? (r.filename ? r.filename : "Downloaded")
+                       : (r.error ? `Error: ${r.error}` : "Error");
 
-      for(const r of results){
-        const isOk = r.status === "success";
-        const vendor = fmtVendor(r.vendor);
-        const acct = (typeof r.account === "number") ? (r.account + 1) : r.account;
-
-        const item = document.createElement("div");
-        item.className = "result-item reveal";
-
-        const left = document.createElement("div");
-        left.className = "result-left";
-
-        const title = document.createElement("div");
-        title.className = "result-title";
-
-        const icon = document.createElement("div");
-        icon.className = "result-icon " + (isOk ? "good" : "bad");
-        icon.textContent = isOk ? "✓" : "!";
-
-        const text = document.createElement("div");
-        text.className = "text";
-        if(isOk){
-          text.textContent = `${vendor} Account ${acct} — ${r.filename || "Downloaded"}`;
-        } else {
-          text.textContent = `${vendor} Account ${acct} — Failed`;
-        }
-
-        title.appendChild(icon);
-        title.appendChild(text);
-
-        const meta = document.createElement("div");
-        meta.className = "result-meta";
-
-        if(isOk){
-          meta.textContent = "Saved and emailed (if enabled).";
-        } else {
-          meta.textContent = `Error: ${r.error || "Unknown error"}`;
-        }
-
-        left.appendChild(title);
-        left.appendChild(meta);
-
-        const badge = document.createElement("span");
-        badge.className = "badge " + (isOk ? "good" : "bad");
-        badge.textContent = isOk ? "Success" : "Failed";
-
-        item.appendChild(left);
-        item.appendChild(badge);
-
-        resultsList.appendChild(item);
+        const div = document.createElement("div");
+        div.className = "resultItem";
+        div.innerHTML = `
+          <div class="resultIcon">${icon}</div>
+          <div class="resultMain">
+            <div class="resultTitle">
+              <span>${title}</span>
+              ${badge}
+            </div>
+            <div class="resultSub">${escapeHtml(sub)}</div>
+          </div>
+        `;
+        list.appendChild(div);
       }
     }
 
-    function renderJob(job){
-      const total = job.total_accounts ?? 0;
-      const completed = job.completed_accounts ?? 0;
-      const p = percent(completed, total);
-
-      progressText.textContent = `${completed} out of ${total} accounts completed`;
-      percentLabel.textContent = `${p}%`;
-      progressFill.style.width = `${p}%`;
-
-      const v = fmtVendor(job.current_vendor);
-      const acct = (typeof job.current_account === "number") ? (job.current_account + 1) : job.current_account;
-
-      if(job.status === "running"){
-        currentStep.textContent = v ? `Running: ${v} — Account ${acct}` : "Running…";
-        setBadge("warn", "Running", true);
-      } else if(job.status === "pending"){
-        currentStep.textContent = "Queued…";
-        setBadge("warn", "Pending", true);
-      } else if(job.status === "completed"){
-        currentStep.textContent = "Completed successfully.";
-        setBadge("good", "Completed", false);
-      } else if(job.status === "failed"){
-        currentStep.textContent = "Job failed. See results for details.";
-        setBadge("bad", "Failed", false);
-      } else {
-        currentStep.textContent = "Status unknown.";
-        setBadge("warn", "Unknown", false);
-      }
-
-      renderResults(job);
+    function escapeHtml(str) {
+      return String(str || "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
     }
 
-    function stopPolling(){
-      if(pollTimer){
-        clearInterval(pollTimer);
+    function signatureForResults(results) {
+      try { return JSON.stringify(results || []); } catch { return String(Math.random()); }
+    }
+
+    async function apiGet(path) {
+      const res = await fetch(path, { method: "GET", headers: { "Accept": "application/json" } });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data && (data.error || data.message)) || `HTTP ${res.status}`);
+      return data;
+    }
+
+    async function apiPost(path, bodyObj) {
+      const res = await fetch(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(bodyObj || {})
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const err = new Error((data && (data.error || data.message)) || `HTTP ${res.status}`);
+        err.status = res.status;
+        throw err;
+      }
+      return data;
+    }
+
+    async function startJob(payload) {
+      lastResultsSignature = "";
+      $("resultsWrap").style.display = "none";
+      $("resultsList").innerHTML = "";
+
+      setBadge("wait", "Starting");
+      showProgress(true);
+      $("runSpin").style.display = "inline-block";
+      $("progressText").textContent = "Starting job…";
+      $("progressFill").style.width = "0%";
+      $("percentChip").textContent = "0%";
+      disableWhileRunning(true);
+
+      try {
+        const resp = await apiPost("/api/start-job", payload);
+        activeJobId = resp.job_id;
+        $("jobIdChip").textContent = `job: ${activeJobId}`;
+        toast("wait", "Job started", "Running automation. You can keep this tab open for live updates.");
+        setBadge("run", "Running");
+        beginPolling(activeJobId);
+      } catch (e) {
+        if (e.status === 409) toast("wait", "Already running", e.message || "A job is already running.");
+        else toast("bad", "Could not start job", e.message || "Start failed.");
+        setBadge(null, "Idle");
+        disableWhileRunning(false);
+        showProgress(false);
+        throw e;
+      }
+    }
+
+    function beginPolling(jobId) {
+      stopPolling();
+      pollTimer = window.setInterval(() => pollJob(jobId), 2000);
+      pollJob(jobId);
+    }
+
+    function stopPolling() {
+      if (pollTimer) {
+        window.clearInterval(pollTimer);
         pollTimer = null;
       }
     }
 
-    async function pollOnce(){
-      if(!currentJobId) return;
-      try{
-        const res = await fetch(STATUS_ENDPOINT_PREFIX + encodeURIComponent(currentJobId), {
-          headers: { "Accept": "application/json" }
-        });
+    async function pollJob(jobId) {
+      try {
+        const resp = await apiGet(`/api/job-status/${encodeURIComponent(jobId)}`);
+        const job = resp.job;
 
-        if(!res.ok){
-          setHealth("bad", "Backend error");
-          showToast("bad", "Status error", `GET status failed (${res.status}).`);
+        const total = job.total_accounts || 0;
+        const done = job.completed_accounts || 0;
+        const pct = (job.percent_complete != null) ? job.percent_complete : (total ? Math.round((done/total)*100) : 0);
+        const label = job.current_label || (job.current_vendor ? `${formatVendor(job.current_vendor)} — Account #${(job.current_account||0)+1}` : "…");
+
+        $("percentChip").textContent = `${pct}%`;
+        $("progressFill").style.width = `${Math.min(100, Math.max(0, pct))}%`;
+
+        let statusText = "";
+        if (job.status === "pending") statusText = "Pending…";
+        if (job.status === "running") statusText = `Running: ${label}`;
+        if (job.status === "completed") statusText = "Completed";
+        if (job.status === "failed") statusText = "Failed";
+
+        $("progressText").textContent = `${done} out of ${total} accounts completed • ${statusText}`;
+
+        const sig = signatureForResults(job.results);
+        if (sig !== lastResultsSignature) {
+          lastResultsSignature = sig;
+          $("resultsWrap").style.display = "block";
+          renderResults(job.results);
+        }
+
+        if (job.status === "running" || job.status === "pending") {
+          setBadge("run", "Running");
+          $("runSpin").style.display = "inline-block";
+          disableWhileRunning(true);
           return;
         }
 
-        const data = await res.json();
-        if(!data || data.success !== true || !data.job){
-          setHealth("bad", "Bad response");
-          showToast("bad", "Bad response", "Backend returned unexpected JSON.");
-          return;
+        stopPolling();
+        $("runSpin").style.display = "none";
+        disableWhileRunning(false);
+
+        const results = Array.isArray(job.results) ? job.results : [];
+        const successCount = results.filter(r => r.status === "success").length;
+        const failCount = results.filter(r => r.status === "failed").length;
+
+        if (job.status === "completed") {
+          setBadge("good", "Completed");
+          toast("good", "Run complete", `Success: ${successCount} • Failed: ${failCount}`);
+        } else {
+          setBadge("bad", "Failed");
+          toast("bad", "Run failed", job.error_message || "Job failed.");
         }
 
-        setHealth("good", "Connected");
-        lastStatus = data.job;
+        activeJobId = null;
 
-        renderJob(data.job);
+      } catch (e) {
+        stopPolling();
+        $("runSpin").style.display = "none";
+        setBadge("bad", "Error");
+        disableWhileRunning(false);
+        toast("bad", "Status error", e.message || "Could not fetch job status.");
+      }
+    }
 
-        // If finished, stop polling and re-enable the button
-        if(data.job.status === "completed" || data.job.status === "failed"){
-          stopPolling();
-          startBtn.disabled = false;
-          startBtn.innerHTML = `
-            <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M8.5 5.5v13l11-6.5-11-6.5z" fill="rgba(255,255,255,.92)"/>
-            </svg>
-            Download All Invoices
+    async function loadMe() {
+      const resp = await apiGet("/api/me");
+      cachedUser = resp.user || null;
+      const email = (cachedUser && cachedUser.settings && cachedUser.settings.default_email_to) ? cachedUser.settings.default_email_to : "";
+      $("emailInput").value = email;
+      $("envPill").innerHTML = '<span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:rgba(34,197,94,.9);box-shadow:0 0 0 4px rgba(34,197,94,.12)"></span><span>Ready • local</span>';
+    }
+
+    async function saveDefaultEmail() {
+      const email = getEmailOverride();
+      const payload = { default_email_to: email || "" };
+      try {
+        const resp = await apiPost("/api/settings", payload);
+        const saved = (resp.settings && resp.settings.default_email_to) ? resp.settings.default_email_to : "";
+        $("emailInput").value = saved;
+        toast("good", "Saved", saved ? `Default email set to ${saved}` : "Default email cleared.");
+      } catch (e) {
+        toast("bad", "Save failed", e.message || "Could not save settings.");
+      }
+    }
+
+    async function loadVendors() {
+      const list = $("vendorList");
+      list.innerHTML = '<div class="muted">Loading vendors…</div>';
+      try {
+        const resp = await apiGet("/api/vendors");
+        const vendors = resp.vendors || [];
+        if (!vendors.length) {
+          list.innerHTML = '<div class="muted">No vendors configured.</div>';
+          return;
+        }
+        list.innerHTML = "";
+        for (const v of vendors) {
+          const card = document.createElement("div");
+          card.className = "vendorCard";
+          const name = v.display_name || formatVendor(v.name);
+          const accounts = Array.isArray(v.accounts) ? v.accounts : [];
+          card.innerHTML = `
+            <div class="vendorTop">
+              <div>
+                <div class="vendorName">${escapeHtml(name)}</div>
+                <div class="hint">Accounts: ${accounts.length}</div>
+              </div>
+            </div>
+            <div class="accounts"></div>
           `;
+          list.appendChild(card);
 
-          if(data.job.status === "completed"){
-            showToast("good", "Run completed", "All accounts have finished processing.");
+          const accWrap = card.querySelector(".accounts");
+          if (!accounts.length) {
+            accWrap.innerHTML = '<span class="muted" style="font-size:12px;">No accounts.</span>';
           } else {
-            showToast("bad", "Run failed", "One or more accounts failed. Check results.");
+            for (const idx of accounts) {
+              const btn = document.createElement("button");
+              btn.className = "btn small";
+              btn.type = "button";
+              btn.dataset.action = "single";
+              btn.textContent = `Download #${Number(idx) + 1}`;
+              btn.addEventListener("click", () => {
+                const email_to = getEmailOverride();
+                return startJob({
+                  mode: "single",
+                  vendor: v.name,
+                  account: idx,
+                  email_to: email_to
+                });
+              });
+              accWrap.appendChild(btn);
+            }
           }
         }
-
-      } catch(err){
-        setHealth("bad", "Offline");
-        showToast("bad", "Network error", "Could not reach backend.");
+      } catch (e) {
+        list.innerHTML = `<div class="muted">Failed to load vendors: ${escapeHtml(e.message || "error")}</div>`;
       }
     }
 
-    async function startJob(){
-      stopPolling();
-      currentJobId = null;
-      lastStatus = null;
-
-      showProgressUI();
-      clearResults();
-
-      startBtn.disabled = true;
-      startBtn.innerHTML = `
-        <span class="spinner" aria-hidden="true"></span>
-        Starting…
-      `;
-
-      // Reset progress visuals
-      progressFill.style.width = "0%";
-      percentLabel.textContent = "0%";
-      progressText.textContent = "0 out of 0 accounts completed";
-      currentStep.textContent = "Starting…";
-      setBadge("warn", "Starting", true);
-
-      try{
-        const res = await fetch(START_ENDPOINT, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-          },
-          // Backend doesn't require body per spec; send empty JSON for consistency
-          body: JSON.stringify({})
-        });
-
-        if(!res.ok){
-          setHealth("bad", "Backend error");
-          startBtn.disabled = false;
-          startBtn.innerHTML = `
-            <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M8.5 5.5v13l11-6.5-11-6.5z" fill="rgba(255,255,255,.92)"/>
-            </svg>
-            Download All Invoices
-          `;
-          setBadge("bad", "Error", false);
-          showToast("bad", "Start failed", `POST /api/start-job failed (${res.status}).`);
-          return;
-        }
-
-        const data = await res.json();
-        if(!data || data.success !== true || !data.job_id){
-          setHealth("bad", "Bad response");
-          startBtn.disabled = false;
-          setBadge("bad", "Error", false);
-          showToast("bad", "Start failed", "Backend returned unexpected JSON.");
-          return;
-        }
-
-        currentJobId = data.job_id;
-        setHealth("good", "Connected");
-        showToast("good", "Job started", `Job ID: ${currentJobId}`);
-
-        // Poll immediately, then every 2s
-        await pollOnce();
-        pollTimer = setInterval(pollOnce, POLL_MS);
-
-        // Switch button to "Running…"
-        startBtn.innerHTML = `
-          <span class="spinner" aria-hidden="true"></span>
-          Running…
-        `;
-
-      } catch(err){
-        setHealth("bad", "Offline");
-        startBtn.disabled = false;
-        setBadge("bad", "Error", false);
-        showToast("bad", "Network error", "Could not reach backend to start job.");
-      }
-    }
-
-    function resetUI(){
-      stopPolling();
-      currentJobId = null;
-      lastStatus = null;
-      startBtn.disabled = false;
-      startBtn.innerHTML = `
-        <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M8.5 5.5v13l11-6.5-11-6.5z" fill="rgba(255,255,255,.92)"/>
-        </svg>
-        Download All Invoices
-      `;
-      setHealth(null, "Ready");
-      showIdleUI();
-      clearResults();
-      setBadge("warn", "Running", true);
-    }
-
-    // --- Event wiring ---
-    startBtn.addEventListener("click", startJob);
-    resetBtn.addEventListener("click", resetUI);
-
-    clearBtn.addEventListener("click", () => {
-      clearResults();
-      showToast("good", "Cleared", "Results list cleared.");
+    $("downloadAllBtn").addEventListener("click", () => {
+      const email_to = getEmailOverride();
+      return startJob({ mode: "all", email_to: email_to });
     });
 
-    copyBtn.addEventListener("click", async () => {
-      if(!lastStatus) return;
-      try{
-        await navigator.clipboard.writeText(resultsToText(lastStatus));
-        showToast("good", "Copied", "Results copied to clipboard.");
-      } catch(e){
-        showToast("bad", "Copy failed", "Clipboard permission blocked.");
-      }
-    });
+    $("saveEmailBtn").addEventListener("click", saveDefaultEmail);
+    $("refreshVendorsBtn").addEventListener("click", loadVendors);
 
-    // Initial state
-    resetUI();
+    (async function init() {
+      setBadge(null, "Idle");
+      showProgress(false);
+      try {
+        await loadMe();
+      } catch (e) {
+        $("envPill").innerHTML = '<span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:rgba(239,68,68,.9);box-shadow:0 0 0 4px rgba(239,68,68,.12)"></span><span>Backend not reachable</span>';
+        toast("bad", "Backend not reachable", "Make sure Flask is running on localhost:5000.");
+      }
+      await loadVendors();
+    })();
   </script>
 </body>
 </html>
