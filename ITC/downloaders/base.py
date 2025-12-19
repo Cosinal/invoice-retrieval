@@ -225,7 +225,7 @@ class VendorDownloader(ABC):
                     
                     # Launch browser
                     self.browser = playwright.chromium.launch(
-                        headless=False,
+                        headless=headless,
                         slow_mo=500,
                         channel ="msedge"
                     )
@@ -233,7 +233,7 @@ class VendorDownloader(ABC):
                 except Exception as e:
                     self.logger.warning(f"Edge not available, using Chromium: {e}")
                     self.browser = playwright.chromium.launch(
-                        headless=False,
+                        headless=headless,
                         slow_mo=500
                     )
                     self.logger.info("Browser launched (chromium)")

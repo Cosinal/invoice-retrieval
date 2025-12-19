@@ -29,6 +29,9 @@ app = Flask(__name__, static_folder='static')
 # Download path from environment
 DOWNLOAD_PATH = os.getenv("DOWNLOAD_PATH")
 
+# Headless mode
+HEADLESS_MODE = os.getenv('HEADLESS_MODE', 'true').lower() == 'true'
+
 def validate_email(email):
     """  
     Lightweight email validation
@@ -145,7 +148,7 @@ def run_automation_job(job_id):
                 result = downloader.run(
                     account_index=account_index,
                     download_path = DOWNLOAD_PATH,
-                    headless = True
+                    headless = HEADLESS_MODE
                 )
 
                 # Record Result
